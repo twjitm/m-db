@@ -13,5 +13,7 @@ public @interface Indexed {
 
     String name() default "";
 
+    String field() default "";
+
     boolean unique = true;
 }

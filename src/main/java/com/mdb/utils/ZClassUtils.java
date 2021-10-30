@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.mdb.entity.MongoPrimaryKey;
 
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -14,12 +15,18 @@ public class ZClassUtils {
 
     public static <T> Map<String, Object> getClassFiledKv(T t) {
         Class<?> clazz = t.getClass();
-        Field[] fileds = clazz.getDeclaredFields();
+        Field[] fields = clazz.getDeclaredFields();
         Map<String, Object> kv = new HashMap<>();
-        for (Field field : fileds) {
+        for (Field field : fields) {
             field.setAccessible(true); // 私有属性必须设置访问权限
             Object v = getFieldVal(t, field);
-            String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
+            com.mdb.enums.Field fd = field.getAnnotation(com.mdb.enums.Field.class);
+            String name = "";
+            if (fd != null) {
+                name = fd.name();
+            } else {
+                name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
+            }
             kv.put(name, v);
         }
         return kv;
@@ -27,9 +34,9 @@ public class ZClassUtils {
 
     public static <T> Map<String, Object> getClassOriginalFiledKv(T t) {
         Class<?> clazz = t.getClass();
-        Field[] fileds = clazz.getDeclaredFields();
+        Field[] fields = clazz.getDeclaredFields();
         Map<String, Object> kv = new HashMap<>();
-        for (Field field : fileds) {
+        for (Field field : fields) {
             field.setAccessible(true); // 私有属性必须设置访问权限
             Object v = getFieldVal(t, field);
             kv.put(field.getName(), v);
@@ -263,4 +270,18 @@ public class ZClassUtils {
         return b;
     }
 
+    public static <T extends Annotation> List<T> getFieldAnnotations(Object t, Class<T> type) {
+
+        List<T> list = new ArrayList<>();
+        Field[] fields = getAllFields(t);
+        for (Field field : fields) {
+            field.setAccessible(true); // 私有属性必须设置访问权限
+            T e = field.getAnnotation(type);
+            if (e == null) {
+                continue;
+            }
+            list.add(e);
+        }
+        return list;
+    }
 }

@@ -11,21 +11,28 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver</artifactId>
-            <version>3.4.3</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.mongodb</groupId>-->
+<!--            <artifactId>mongodb-driver</artifactId>-->
+<!--            <version>3.4.3</version>-->
+<!--        </dependency>-->
 
+<!--        <dependency>-->
+<!--            <groupId>org.mongodb</groupId>-->
+<!--            <artifactId>bson</artifactId>-->
+<!--            <version>4.2.3</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.mongodb</groupId>-->
+<!--            <artifactId>mongodb-driver-core</artifactId>-->
+<!--            <version>4.2.3</version>-->
+<!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/org.mongodb/mongo-java-driver -->
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>bson</artifactId>
-            <version>4.2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-core</artifactId>
-            <version>4.2.3</version>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.12.10</version>
         </dependency>
 
         <dependency>
