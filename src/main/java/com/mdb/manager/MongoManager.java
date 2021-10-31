@@ -77,7 +77,7 @@ public class MongoManager {
         String key = database + ":" + collection;
         MongoCollection<Document> db = collections.get(key);
         if (db == null) {
-            db = mongoClient.getDatabase(database).getCollection(collection);
+            db = mongoClient.getDatabase(database).withCodecRegistry(codecRegistry).getCollection(collection);
             collections.put(key, db);
         }
         return db;
@@ -135,7 +135,7 @@ public class MongoManager {
         }
         Bson filter = Filters.and(filters);
         MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        return this.getCollection(document).withCodecRegistry(codecRegistry).find(filter, clazz).first();
+        return this.getCollection(document).find(filter, clazz).first();
     }
 
 
