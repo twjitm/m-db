@@ -7,11 +7,19 @@ import com.mdb.enums.MongoDocument;
 import com.mdb.utils.ZCollectionUtil;
 import com.mongodb.MongoClient;
 
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.*;
 import org.bson.Document;
+import org.bson.codecs.BsonCodecProvider;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
+import org.bson.internal.ProvidersCodecRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,13 +27,13 @@ import java.util.List;
 import java.util.Map;
 
 
-public class MongoManager<T extends MongoPo> {
+public class MongoManager {
 
     private MongoClient mongoClient = null;
+    private final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
     private final Map<String, MongoCollection<Document>> collections = new HashMap<>();
-    @SuppressWarnings("rawtypes")
-    private final static MongoManager instance = new MongoManager<>();
-    @SuppressWarnings("rawtypes")
+    private final static MongoManager instance = new MongoManager();
+
     public static MongoManager getInstance() {
         return instance;
     }
@@ -36,10 +44,10 @@ public class MongoManager<T extends MongoPo> {
         }
     }
 
-    public void scanIndex(Class<T> clazz) {
+    public <T extends MongoPo> void createIndex(Class<T> clazz) {
 
         try {
-            T v = clazz.newInstance();
+            MongoPo v = clazz.newInstance();
             MongoDocument doc = clazz.getAnnotation(MongoDocument.class);
             MongoCollection<Document> db = this.getCollection(doc);
             List<IndexModel> list = v.getIndex();
@@ -50,8 +58,6 @@ public class MongoManager<T extends MongoPo> {
         } catch (InstantiationException | IllegalAccessException e) {
             e.printStackTrace();
         }
-
-
     }
 
     public final void load(MongoClient client) {
@@ -81,7 +87,13 @@ public class MongoManager<T extends MongoPo> {
         return this.getCollection(document.database(), document.collection());
     }
 
-    public boolean add(T t) {
+    public <T extends MongoPo> MongoCollection<Document> getCollection(T t) {
+        MongoDocument document = t.getClass().getAnnotation(MongoDocument.class);
+        return this.getCollection(document.database(), document.collection());
+    }
+
+
+    public <T extends MongoPo> boolean add(T t) {
         if (t == null) {
             return false;
         }
@@ -93,7 +105,7 @@ public class MongoManager<T extends MongoPo> {
     }
 
 
-    public boolean addMany(List<T> list) {
+    public <T extends MongoPo> boolean addMany(List<T> list) {
         BulkWriteOptions op = new BulkWriteOptions().ordered(true);
         List<InsertOneModel<Document>> ins = new ArrayList<>();
         T t = list.get(0);
@@ -104,18 +116,17 @@ public class MongoManager<T extends MongoPo> {
         return true;
     }
 
-    public boolean update(T t) {
+    public <T extends MongoPo> boolean update(T t) {
 
         return false;
     }
 
-    public boolean updateMany(List<T> list) {
+    public <T extends MongoPo> boolean updateMany(List<T> list) {
 
         return true;
     }
 
-
-    public T get(Class<T> clazz, MongoPrimaryKey... keys) {
+    public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) {
 
         List<Bson> filters = new ArrayList<>();
         for (MongoPrimaryKey key : keys) {
@@ -124,11 +135,11 @@ public class MongoManager<T extends MongoPo> {
         }
         Bson filter = Filters.and(filters);
         MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        return this.getCollection(document).find(filter, clazz).first();
+        return this.getCollection(document).withCodecRegistry(codecRegistry).find(filter, clazz).first();
     }
 
 
-    public List<T> getAll(Class<T> clazz, MongoPrimaryKey... keys) {
+    public <T extends MongoPo> List<T> getAll(Class<T> clazz, MongoPrimaryKey... keys) {
         List<Bson> filters = new ArrayList<>();
         for (MongoPrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
@@ -142,18 +153,16 @@ public class MongoManager<T extends MongoPo> {
         List<T> result = new ArrayList<>();
         while (items.hasNext()) {
             T t = items.next();
-            if (t != null) {
-                result.add(t);
-            }
+            result.add(t);
         }
         return result;
     }
 
-    public T findOne(Query query) {
+    public <T extends MongoPo> T findOne(Query query) {
         return null;
     }
 
-    public T findOne(Aggregates aggregates) {
+    public <T extends MongoPo> T findOne(Aggregates aggregates) {
         return null;
     }
 

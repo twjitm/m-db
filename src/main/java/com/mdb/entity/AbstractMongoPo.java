@@ -33,7 +33,7 @@ abstract public class AbstractMongoPo implements MongoPo {
 
     @Override
     public Map<String, ?> data() {
-        return null;
+        return ZClassUtils.getClassFiledKv(this);
     }
 
     @Override
