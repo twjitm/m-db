@@ -2,6 +2,7 @@ package com.mdb.entity;
 
 import com.mdb.enums.Indexed;
 import com.mdb.utils.ZClassUtils;
+import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -11,7 +12,31 @@ import java.util.*;
 
 abstract public class AbstractMongoPo implements MongoPo {
 
-    Document document = new Document();
+    protected long ctime;
+    protected long mtime;
+    private final Document document = new Document();
+
+
+    public AbstractMongoPo() {
+        this.ctime = ZTimeUtils.Now();
+        this.mtime = ZTimeUtils.Now();
+    }
+
+    public void setCtime(long ctime) {
+        this.ctime = ctime;
+    }
+
+    public void setMtime(long mtime) {
+        this.mtime = mtime;
+    }
+
+    public long getCtime() {
+        return ctime;
+    }
+
+    public long getMtime() {
+        return mtime;
+    }
 
     @Override
     public Document document() {
@@ -44,10 +69,5 @@ abstract public class AbstractMongoPo implements MongoPo {
     @Override
     public SortedSet<MongoPrimaryKey> primaryKeys() {
         return null;
-    }
-
-    @Override
-    public void ticker(String filed, long id) {
-
     }
 }

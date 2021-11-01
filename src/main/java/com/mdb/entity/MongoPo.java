@@ -16,8 +16,6 @@ public interface MongoPo {
 
     Map<String, ?> data();
 
-    void ticker(String filed, long id);
-
     Map<String, ?> modify();
 
     SortedSet<MongoPrimaryKey> primaryKeys();
