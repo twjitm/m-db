@@ -117,6 +117,11 @@ public class MongoManager {
     }
 
     public <T extends MongoPo> boolean update(T t) {
+        Map<String, ?> modify = t.modify();
+        if (ZCollectionUtil.isEmpty(modify)){
+            return false;
+        }
+        //this.getCollection(t).updateOne();
 
         return false;
     }

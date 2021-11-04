@@ -30,7 +30,7 @@ public class Test {
     }
 
     public static void get() {
-        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, new MongoPrimaryKey("uid", 3));
+        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class,MongoPrimaryKey.builder("uid",1));
         System.out.println(user.getAge());
 
     }

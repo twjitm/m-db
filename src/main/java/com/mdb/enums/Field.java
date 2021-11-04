@@ -9,5 +9,7 @@ public @interface Field {
 
     String name() default "";
 
+    boolean readOnly() default false;
+
     int order() default Integer.MAX_VALUE;
 }
