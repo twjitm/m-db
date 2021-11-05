@@ -4,14 +4,16 @@ import com.mdb.base.query.Query;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.enums.MongoDocument;
+import com.mdb.error.MException;
 import com.mdb.utils.ZCollectionUtil;
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 
 import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
+import com.mongodb.QueryBuilder;
+import com.mongodb.client.*;
 import com.mongodb.client.model.*;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.codecs.BsonCodecProvider;
 import org.bson.codecs.configuration.CodecProvider;
@@ -92,6 +94,11 @@ public class MongoManager {
         return this.getCollection(document.database(), document.collection());
     }
 
+    public <T extends MongoPo> MongoCollection<Document> getCollection(Class<T> clazz) {
+        MongoDocument document = clazz.getAnnotation(MongoDocument.class);
+        return this.getCollection(document.database(), document.collection());
+    }
+
 
     public <T extends MongoPo> boolean add(T t) {
         if (t == null) {
@@ -117,13 +124,15 @@ public class MongoManager {
     }
 
     public <T extends MongoPo> boolean update(T t) {
-        Map<String, ?> modify = t.modify();
-        if (ZCollectionUtil.isEmpty(modify)){
+        if (t == null) {
             return false;
         }
-        //this.getCollection(t).updateOne();
-
-        return false;
+        Document modify = t.modify();
+        if (ZCollectionUtil.isEmpty(modify)) {
+            return false;
+        }
+        UpdateResult result = this.getCollection(t).updateOne(t.primaryKeys(), modify);
+        return result.wasAcknowledged();
     }
 
     public <T extends MongoPo> boolean updateMany(List<T> list) {
@@ -131,8 +140,11 @@ public class MongoManager {
         return true;
     }
 
-    public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) {
+    public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
 
+        if (!ZCollectionUtil.isEmpty(keys)) {
+            throw new MException("[error][mdb][conduction is empty]");
+        }
         List<Bson> filters = new ArrayList<>();
         for (MongoPrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
@@ -144,8 +156,11 @@ public class MongoManager {
     }
 
 
-    public <T extends MongoPo> List<T> getAll(Class<T> clazz, MongoPrimaryKey... keys) {
+    public <T extends MongoPo> List<T> getAll(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
         List<Bson> filters = new ArrayList<>();
+        if (!ZCollectionUtil.isEmpty(keys)) {
+            throw new MException("[error][mdb][conduction is empty]");
+        }
         for (MongoPrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
             filters.add(filter);
@@ -163,8 +178,14 @@ public class MongoManager {
         return result;
     }
 
-    public <T extends MongoPo> T findOne(Query query) {
-        return null;
+    public <T extends MongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
+        BasicDBObject ob = (BasicDBObject) query.get();
+        if (ob.size() == 0) {
+            throw new MException("[error][mdb][conduction is empty]");
+        }
+        MongoCollection<Document> collection = this.getCollection(clazz);
+        FindIterable<T> result = collection.find(ob, clazz);
+        return result.first();
     }
 
     public <T extends MongoPo> T findOne(Aggregates aggregates) {

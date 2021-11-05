@@ -22,7 +22,7 @@ public class ZClassUtils {
             Object v = getFieldVal(t, field);
             com.mdb.enums.Field fd = field.getAnnotation(com.mdb.enums.Field.class);
             String name = "";
-            if (fd != null) {
+            if (fd != null && !ZStringUtils.isEmpty(fd.name())) {
                 name = fd.name();
             } else {
                 name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());

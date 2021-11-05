@@ -1,12 +1,14 @@
 package com.mdb.entity;
 
 import com.mdb.enums.Indexed;
+import com.mdb.enums.PrimaryKey;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.*;
 
@@ -20,6 +22,7 @@ abstract public class AbstractMongoPo implements MongoPo {
     public AbstractMongoPo() {
         this.ctime = ZTimeUtils.Now();
         this.mtime = ZTimeUtils.Now();
+        this.document();
     }
 
     public void setCtime(long ctime) {
@@ -40,6 +43,9 @@ abstract public class AbstractMongoPo implements MongoPo {
 
     @Override
     public Document document() {
+        if (document.size() > 0) {
+            return document;
+        }
         Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
         kv.forEach(document::put);
         return document;
@@ -62,12 +68,22 @@ abstract public class AbstractMongoPo implements MongoPo {
     }
 
     @Override
-    public Map<String, ?> modify() {
-        return null;
+    public Document modify() {
+        Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
+        Document modify = new Document();
+        kv.forEach((k, v) -> {
+            Object ov = document.get(k);
+            if (ov != v) {
+                modify.put(k, v);
+            }
+        });
+        return modify;
     }
 
     @Override
-    public SortedSet<MongoPrimaryKey> primaryKeys() {
+    public Bson primaryKeys() {
+        List<PrimaryKey> pk = ZClassUtils.getFieldAnnotations(this, PrimaryKey.class);
+
         return null;
     }
 }

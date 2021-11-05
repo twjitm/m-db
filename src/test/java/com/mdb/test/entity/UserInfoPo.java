@@ -4,14 +4,14 @@ import com.mdb.entity.AbstractMongoPo;
 import com.mdb.enums.*;
 
 @CompoundIndexed(name = "", value = {@Indexed(name = "uid", field = "uid"), @Indexed(name = "name")})
-@MongoDocument(database = "mdb", collection = "user_name")
+@MongoDocument(database = "mdb", collection = "user_info")
 public class UserInfoPo extends AbstractMongoPo {
 
     @Indexed(name = "uid", unique = true)
     @Field(readOnly = true)
     @PrimaryKey()
     private long uid;
-    @Indexed(name = "name")
+    @Indexed(name = "name",unique = true)
     private String name;
     private byte age;
     private String job;
@@ -56,5 +56,16 @@ public class UserInfoPo extends AbstractMongoPo {
 
     public void setJobTime(long jobTime) {
         this.jobTime = jobTime;
+    }
+
+    @Override
+    public String toString() {
+        return "UserInfoPo{" +
+                "uid=" + uid +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                ", job='" + job + '\'' +
+                ", jobTime=" + jobTime +
+                '}';
     }
 }

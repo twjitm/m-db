@@ -2,6 +2,7 @@ package com.mdb.entity;
 
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,9 @@ public interface MongoPo {
 
     Map<String, ?> data();
 
-    Map<String, ?> modify();
+    Document modify();
 
-    SortedSet<MongoPrimaryKey> primaryKeys();
+    Bson primaryKeys();
 
 
 }
