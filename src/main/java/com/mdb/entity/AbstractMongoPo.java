@@ -5,6 +5,7 @@ import com.mdb.enums.index.Indexed;
 import com.mdb.enums.PrimaryKey;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -23,7 +24,6 @@ abstract public class AbstractMongoPo implements MongoPo {
     public AbstractMongoPo() {
         this.ctime = ZTimeUtils.Now();
         this.mtime = ZTimeUtils.Now();
-        this.document();
     }
 
     public void setCtime(long ctime) {
@@ -95,11 +95,13 @@ abstract public class AbstractMongoPo implements MongoPo {
     @Override
     public Bson primaryKeys() {
         List<PrimaryKey> pks = ZClassUtils.getFieldAnnotations(this, PrimaryKey.class);
-//        Filters.
-//                pks.forEach(item -> {
-//            Filters.eq(item.name(), item.value());
-//        });
-
-        return null;
+        Map<String, ?> data = this.data();
+        List<Bson> list = new ArrayList<>();
+        pks.forEach(item -> {
+            String name = item.name();
+            Bson bq = Filters.eq(name, data.get(name));
+            list.add(bq);
+        });
+        return Filters.and(list);
     }
 }
