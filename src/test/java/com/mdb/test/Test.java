@@ -5,17 +5,13 @@ import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.error.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.UserInfoPo;
-import com.mongodb.DBObject;
-
-import java.util.Random;
-
 public class Test {
     public static void main(String[] args) throws MException {
         MongoManager.getInstance().load("127.0.0.1:27017");
-        // createIndex();
+        createIndex();
         // add();
         //get();
-        find();
+        // find();
     }
 
     public static void createIndex() {
@@ -41,7 +37,7 @@ public class Test {
     }
 
     public static void find() throws MException {
-        UserInfoPo res = MongoManager.getInstance().findOne(UserInfoPo.class, Query.builder().add("job", "developer1"));
+        UserInfoPo res = MongoManager.getInstance().findOne(UserInfoPo.class, Query.builder().add("job", "developer"));
         if (res != null) {
             System.out.println(res.toString());
         }

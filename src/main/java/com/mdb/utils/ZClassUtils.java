@@ -270,7 +270,7 @@ public class ZClassUtils {
         return b;
     }
 
-    public static <T extends Annotation> List<T> getFieldAnnotations(Object t, Class<T> type) {
+    public static <T extends Annotation, E> List<T> getFieldAnnotations(E t, Class<T> type) {
 
         List<T> list = new ArrayList<>();
         Field[] fields = getAllFields(t);
@@ -283,5 +283,10 @@ public class ZClassUtils {
             list.add(e);
         }
         return list;
+    }
+
+
+    public static <T extends Annotation, E> T getClassAnnotations(E obj, Class<T> clazz) {
+        return obj.getClass().getAnnotation(clazz);
     }
 }

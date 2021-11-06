@@ -1,6 +1,7 @@
 package com.mdb.entity;
 
-import com.mdb.enums.Indexed;
+import com.mdb.enums.index.CompoundIndexed;
+import com.mdb.enums.index.Indexed;
 import com.mdb.enums.PrimaryKey;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
@@ -56,8 +57,19 @@ abstract public class AbstractMongoPo implements MongoPo {
         List<IndexModel> ids = new ArrayList<>();
         List<Indexed> indexedList = ZClassUtils.getFieldAnnotations(this, Indexed.class);
         indexedList.forEach(item ->
-                ids.add(new IndexModel(Indexes.ascending(item.name()),
+                ids.add(new IndexModel(item.order() == 1 ? Indexes.ascending(item.name()) : Indexes.descending(item.name()),
                         new IndexOptions().unique(item.unique()))));
+        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this, CompoundIndexed.class);
+        if (compoundIndex != null) {
+            Indexed[] array = compoundIndex.value();
+            int order = compoundIndex.order();
+            Bson[] bs = new Bson[array.length];
+            for (int i = array.length - 1; i >= 0; i--) {
+                Indexed index = array[i];
+                bs[i] = order == 1 ? Indexes.ascending(index.name()) : Indexes.descending(index.name());
+            }
+            ids.add(new IndexModel(Indexes.compoundIndex(bs), new IndexOptions().unique(compoundIndex.unique())));
+        }
         return ids;
 
     }
@@ -82,7 +94,11 @@ abstract public class AbstractMongoPo implements MongoPo {
 
     @Override
     public Bson primaryKeys() {
-        List<PrimaryKey> pk = ZClassUtils.getFieldAnnotations(this, PrimaryKey.class);
+        List<PrimaryKey> pks = ZClassUtils.getFieldAnnotations(this, PrimaryKey.class);
+//        Filters.
+//                pks.forEach(item -> {
+//            Filters.eq(item.name(), item.value());
+//        });
 
         return null;
     }

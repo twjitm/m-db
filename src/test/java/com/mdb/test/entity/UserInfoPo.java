@@ -2,16 +2,18 @@ package com.mdb.test.entity;
 
 import com.mdb.entity.AbstractMongoPo;
 import com.mdb.enums.*;
+import com.mdb.enums.index.CompoundIndexed;
+import com.mdb.enums.index.Indexed;
 
-@CompoundIndexed(name = "", value = {@Indexed(name = "uid", field = "uid"), @Indexed(name = "name")})
+@CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "name")})
 @MongoDocument(database = "mdb", collection = "user_info")
 public class UserInfoPo extends AbstractMongoPo {
 
     @Indexed(name = "uid", unique = true)
-    @Field(readOnly = true)
+    @Field(name = "uid",readOnly = true)
     @PrimaryKey()
     private long uid;
-    @Indexed(name = "name",unique = true)
+    @Indexed(name = "name", unique = true)
     private String name;
     private byte age;
     private String job;

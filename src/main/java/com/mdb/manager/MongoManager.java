@@ -50,8 +50,7 @@ public class MongoManager {
 
         try {
             MongoPo v = clazz.newInstance();
-            MongoDocument doc = clazz.getAnnotation(MongoDocument.class);
-            MongoCollection<Document> db = this.getCollection(doc);
+            MongoCollection<Document> db = this.getCollection(clazz);
             List<IndexModel> list = v.getIndex();
             if (ZCollectionUtil.isEmpty(list)) {
                 return;
