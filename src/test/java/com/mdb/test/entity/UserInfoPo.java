@@ -4,6 +4,7 @@ import com.mdb.entity.AbstractMongoPo;
 import com.mdb.enums.*;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "name")})
 @MongoDocument(database = "mdb", collection = "user_info")
@@ -11,14 +12,18 @@ public class UserInfoPo extends AbstractMongoPo {
 
     @Indexed(name = "uid", unique = true)
     @Field(name = "uid",readOnly = true)
-    @PrimaryKey()
+    @MongoId(name = "uid")
     private long uid;
+
     @Indexed(name = "name", unique = true)
     private String name;
+
     private byte age;
+
     private String job;
-    @Field(name = "job_type")
-    private long jobTime;
+
+    @BsonProperty(value = "job_type")
+    private long jobType;
 
     public long getUid() {
         return uid;
@@ -52,12 +57,12 @@ public class UserInfoPo extends AbstractMongoPo {
         this.job = job;
     }
 
-    public long getJobTime() {
-        return jobTime;
+    public long getJobType() {
+        return jobType;
     }
 
-    public void setJobTime(long jobTime) {
-        this.jobTime = jobTime;
+    public void setJobType(long jobType) {
+        this.jobType = jobType;
     }
 
     @Override
@@ -67,7 +72,7 @@ public class UserInfoPo extends AbstractMongoPo {
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", job='" + job + '\'' +
-                ", jobTime=" + jobTime +
+                ", jobType=" + jobType +
                 '}';
     }
 }

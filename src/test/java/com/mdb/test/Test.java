@@ -6,7 +6,6 @@ import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.error.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.UserInfoPo;
-import com.mongodb.QueryOperators;
 
 import java.util.List;
 
@@ -32,6 +31,7 @@ public class Test {
             user.setAge((byte) 26);
             user.setName("twj_" + i);
             user.setJob("developer");
+            user.setJobType(i);
             boolean successful = MongoManager.getInstance().add(user);
         }
     }
@@ -51,7 +51,7 @@ public class Test {
     public static void findAll() throws MException {
 
         List<UserInfoPo> res = MongoManager.getInstance().findAll(UserInfoPo.class, Query.builder().add("job", "developer"),
-                QueryOptions.builder().setSkip(2).setLimit(4));
+                QueryOptions.builder().skip(0).limit(4));
         if (res != null) {
             for (UserInfoPo infoPo : res) {
                 System.out.println(infoPo.toString());

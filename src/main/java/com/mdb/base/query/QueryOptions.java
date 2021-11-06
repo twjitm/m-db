@@ -57,107 +57,107 @@ public class QueryOptions {
         }
     }
 
-    public QueryOptions setBatchSize(int batchSize) {
+    public QueryOptions batchSize(int batchSize) {
         this.batchSize = batchSize;
         return this;
     }
 
-    public QueryOptions setLimit(int limit) {
+    public QueryOptions limit(int limit) {
         this.limit = limit;
         return this;
     }
 
-    public QueryOptions setModifiers(Bson modifiers) {
+    public QueryOptions modifiers(Bson modifiers) {
         this.modifiers = modifiers;
         return this;
     }
 
-    public QueryOptions setProjection(Bson projection) {
+    public QueryOptions projection(Bson projection) {
         this.projection = projection;
         return this;
     }
 
-    public QueryOptions setMaxTimeMS(long maxTimeMS) {
+    public QueryOptions maxTimeMS(long maxTimeMS) {
         this.maxTimeMS = maxTimeMS;
         return this;
     }
 
-    public QueryOptions setMaxAwaitTimeMS(long maxAwaitTimeMS) {
+    public QueryOptions maxAwaitTimeMS(long maxAwaitTimeMS) {
         this.maxAwaitTimeMS = maxAwaitTimeMS;
         return this;
     }
 
-    public QueryOptions setSkip(int skip) {
+    public QueryOptions skip(int skip) {
         this.skip = skip;
         return this;
     }
 
-    public QueryOptions setSort(Bson sort) {
+    public QueryOptions sort(Bson sort) {
         this.sort = sort;
         return this;
     }
 
-    public QueryOptions setCursorType(CursorType cursorType) {
+    public QueryOptions cursorType(CursorType cursorType) {
         this.cursorType = cursorType;
         return this;
     }
 
-    public QueryOptions setNoCursorTimeout(boolean noCursorTimeout) {
+    public QueryOptions noCursorTimeout(boolean noCursorTimeout) {
         this.noCursorTimeout = noCursorTimeout;
         return this;
     }
 
-    public QueryOptions setOplogReplay(boolean oplogReplay) {
+    public QueryOptions qplogReplay(boolean oplogReplay) {
         this.oplogReplay = oplogReplay;
         return this;
     }
 
-    public QueryOptions setPartial(boolean partial) {
+    public QueryOptions partial(boolean partial) {
         this.partial = partial;
         return this;
     }
 
-    public QueryOptions setCollation(Collation collation) {
+    public QueryOptions collation(Collation collation) {
         this.collation = collation;
         return this;
     }
 
-    public QueryOptions setComment(String comment) {
+    public QueryOptions comment(String comment) {
         this.comment = comment;
         return this;
     }
 
-    public QueryOptions setHint(Bson hint) {
+    public QueryOptions hint(Bson hint) {
         this.hint = hint;
         return this;
     }
 
-    public QueryOptions setMax(Bson max) {
+    public QueryOptions max(Bson max) {
         this.max = max;
         return this;
     }
 
-    public QueryOptions setMin(Bson min) {
+    public QueryOptions min(Bson min) {
         this.min = min;
         return this;
     }
 
-    public QueryOptions setMaxScan(long maxScan) {
+    public QueryOptions maxScan(long maxScan) {
         this.maxScan = maxScan;
         return this;
     }
 
-    public QueryOptions setReturnKey(boolean returnKey) {
+    public QueryOptions returnKey(boolean returnKey) {
         this.returnKey = returnKey;
         return this;
     }
 
-    public QueryOptions setShowRecordId(boolean showRecordId) {
+    public QueryOptions showRecordId(boolean showRecordId) {
         this.showRecordId = showRecordId;
         return this;
     }
 
-    public QueryOptions setSnapshot(boolean snapshot) {
+    public QueryOptions snapshot(boolean snapshot) {
         this.snapshot = snapshot;
         return this;
     }

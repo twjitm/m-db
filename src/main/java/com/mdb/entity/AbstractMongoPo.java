@@ -2,7 +2,7 @@ package com.mdb.entity;
 
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
-import com.mdb.enums.PrimaryKey;
+import com.mdb.enums.MongoId;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.Filters;
@@ -94,7 +94,7 @@ abstract public class AbstractMongoPo implements MongoPo {
 
     @Override
     public Bson primaryKeys() {
-        List<PrimaryKey> pks = ZClassUtils.getFieldAnnotations(this, PrimaryKey.class);
+        List<MongoId> pks = ZClassUtils.getFieldAnnotations(this, MongoId.class);
         Map<String, ?> data = this.data();
         List<Bson> list = new ArrayList<>();
         pks.forEach(item -> {

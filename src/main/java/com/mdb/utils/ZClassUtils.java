@@ -2,6 +2,7 @@ package com.mdb.utils;
 
 import com.google.common.base.CaseFormat;
 import com.mdb.entity.MongoPrimaryKey;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
 
 import java.lang.annotation.Annotation;
@@ -20,10 +21,10 @@ public class ZClassUtils {
         for (Field field : fields) {
             field.setAccessible(true); // 私有属性必须设置访问权限
             Object v = getFieldVal(t, field);
-            com.mdb.enums.Field fd = field.getAnnotation(com.mdb.enums.Field.class);
+            BsonProperty fd = field.getAnnotation(BsonProperty.class);
             String name = "";
-            if (fd != null && !ZStringUtils.isEmpty(fd.name())) {
-                name = fd.name();
+            if (fd != null && !ZStringUtils.isEmpty(fd.value())) {
+                name = fd.value();
             } else {
                 name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
             }

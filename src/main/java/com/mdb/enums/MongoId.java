@@ -8,10 +8,9 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface PrimaryKey {
+public @interface MongoId {
 
-    String name() default "";
-
+    String name();
     int order() default 0;
 
 }

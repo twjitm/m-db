@@ -1,36 +1,53 @@
 package com.mdb.manager;
 
-import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
+import com.mdb.entity.AbstractMongoPo;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.enums.MongoDocument;
 import com.mdb.error.MException;
+import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 
-import com.mongodb.QueryBuilder;
+import com.mongodb.MongoClient;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
+import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.bson.codecs.BsonValueCodecProvider;
+import org.bson.codecs.DocumentCodecProvider;
+import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class MongoManager {
 
     private MongoClient mongoClient = null;
-    private final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+
+    static final CodecProvider[] array = new CodecProvider[]{
+            new ValueCodecProvider(),
+            new DBRefCodecProvider(),
+            new DocumentCodecProvider(new DocumentToDBRefTransformer()),
+            new DBObjectCodecProvider(),
+            new BsonValueCodecProvider(),
+            new GeoJsonCodecProvider(),
+            PojoCodecProvider.builder().automatic(true).build(),
+    };
+    private static final CodecRegistry DEFAULT_CODEC_REGISTRY = CodecRegistries.fromProviders(array);
+
+    private final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
+            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+
     private final Map<String, MongoCollection<Document>> collections = new HashMap<>();
+
     private final static MongoManager instance = new MongoManager();
 
     public static MongoManager getInstance() {
@@ -76,7 +93,7 @@ public class MongoManager {
         MongoCollection<Document> db = collections.get(key);
         if (db == null) {
             MongoDatabase dbs = mongoClient.getDatabase(database);
-            db = dbs.withCodecRegistry(codecRegistry).getCollection(collection);
+            db = dbs.withCodecRegistry(DEFAULT_CODEC_REGISTRY).getCollection(collection);
             collections.put(key, db);
         }
         return db;
