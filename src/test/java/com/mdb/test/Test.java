@@ -17,7 +17,8 @@ public class Test {
         //get();
         //findAll();
         //count();
-        update();
+        //update();
+        updateMany();
     }
 
     public static void createIndex() {
@@ -77,7 +78,17 @@ public class Test {
             return;
         }
         user.setJob("java developer");
+        user.setAge((byte) 29);
         boolean successful = MongoManager.getInstance().update(user);
 
     }
+
+    public static void updateMany() throws MException {
+        List<UserInfoPo> res = MongoManager.getInstance().findAll(UserInfoPo.class, Query.builder().and("job", "developer"),
+                QueryOptions.builder().skip(0).limit(4));
+        res.forEach(item -> item.setAge((byte) 22));
+        boolean successful = MongoManager.getInstance().updateMany(res);
+    }
+
+
 }

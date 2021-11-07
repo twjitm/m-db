@@ -1,16 +1,15 @@
 package com.mdb.manager;
 
 import com.mdb.base.query.QueryOptions;
-import com.mdb.entity.AbstractMongoPo;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.enums.MongoDocument;
 import com.mdb.error.MException;
-import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
 import com.mongodb.*;
 
 import com.mongodb.MongoClient;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
@@ -145,14 +144,34 @@ public class MongoManager {
         if (ZCollectionUtil.isEmpty(modify)) {
             return false;
         }
-        //fixme bugfix
-        UpdateResult result = this.getCollection(t).updateOne(t.primaryKeys(), modify);
+        Document dp = new Document();
+        dp.put("$set", modify);
+        UpdateResult result = this.getCollection(t).updateOne(t.primaryKeys(), dp);
         return result.wasAcknowledged();
     }
 
     public <T extends MongoPo> boolean updateMany(List<T> list) {
 
-        return true;
+        if (ZCollectionUtil.isEmpty(list)) {
+            return false;
+        }
+        List<UpdateOneModel<Document>> ups = new ArrayList<>();
+        list.forEach(item -> {
+            try {
+                Document modify = item.modify();
+                if (!ZCollectionUtil.isEmpty(modify)) {
+                    ups.add(new UpdateOneModel<>(item.primaryKeys(), new Document("$set", modify)));
+                }
+            } catch (MException e) {
+                e.printStackTrace();
+            }
+        });
+        if (ZCollectionUtil.isEmpty(ups)) {
+            return false;
+        }
+        MongoCollection<Document> collection = getCollection(list.get(0));
+        BulkWriteResult result = collection.bulkWrite(ups);
+        return result.wasAcknowledged();
     }
 
     public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
