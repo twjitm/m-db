@@ -1,4 +1,4 @@
-package com.mdb.error;
+package com.mdb.exception;
 
 /**
  * @author twjitm

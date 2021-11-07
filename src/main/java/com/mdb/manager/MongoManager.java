@@ -4,7 +4,7 @@ import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.MongoPrimaryKey;
 import com.mdb.enums.MongoDocument;
-import com.mdb.error.MException;
+import com.mdb.exception.MException;
 import com.mdb.utils.ZCollectionUtil;
 import com.mongodb.*;
 

@@ -3,7 +3,7 @@ package com.mdb.entity;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.enums.MongoId;
-import com.mdb.error.MException;
+import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.Filters;

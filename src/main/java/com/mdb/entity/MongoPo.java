@@ -1,14 +1,12 @@
 package com.mdb.entity;
 
-import com.mdb.error.MException;
+import com.mdb.exception.MException;
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
 import java.util.Map;
-
-import java.util.SortedSet;
 
 public interface MongoPo {
 

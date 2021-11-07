@@ -3,7 +3,7 @@ package com.mdb.test;
 import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPrimaryKey;
-import com.mdb.error.MException;
+import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.UserInfoPo;
 
