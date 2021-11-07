@@ -5,7 +5,6 @@ import com.mdb.enums.index.Indexed;
 import com.mdb.enums.MongoId;
 import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
-import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
@@ -17,30 +16,9 @@ import java.util.*;
 
 abstract public class AbstractMongoPo implements MongoPo {
 
-    protected long ctime;
-    protected long mtime;
     private final Document document = new Document();
 
-
     public AbstractMongoPo() {
-        this.ctime = ZTimeUtils.Now();
-        this.mtime = ZTimeUtils.Now();
-    }
-
-    public void setCtime(long ctime) {
-        this.ctime = ctime;
-    }
-
-    public void setMtime(long mtime) {
-        this.mtime = mtime;
-    }
-
-    public long getCtime() {
-        return ctime;
-    }
-
-    public long getMtime() {
-        return mtime;
     }
 
     @Override
@@ -99,7 +77,7 @@ abstract public class AbstractMongoPo implements MongoPo {
     }
 
     @Override
-    public Bson primaryKeys() {
+    public Bson filters() {
         List<MongoId> pks = ZClassUtils.getFieldAnnotations(this, MongoId.class);
         Map<String, ?> data = this.data();
         List<Bson> list = new ArrayList<>();

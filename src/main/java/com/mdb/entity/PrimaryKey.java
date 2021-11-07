@@ -1,11 +1,11 @@
 package com.mdb.entity;
 
-public class MongoPrimaryKey {
+public class PrimaryKey {
 
     private String name;
     private Object value;
 
-    public MongoPrimaryKey(String name, Object value) {
+    public PrimaryKey(String name, Object value) {
         this.name = name;
         this.value = value;
     }
@@ -26,7 +26,7 @@ public class MongoPrimaryKey {
         this.value = value;
     }
 
-    public static MongoPrimaryKey builder(String name, Object value) {
-        return new MongoPrimaryKey(name, value);
+    public static PrimaryKey builder(String name, Object value) {
+        return new PrimaryKey(name, value);
     }
 }

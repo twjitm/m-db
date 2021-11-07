@@ -2,7 +2,8 @@ package com.mdb.manager;
 
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPo;
-import com.mdb.entity.MongoPrimaryKey;
+import com.mdb.entity.PrimaryKey;
+import com.mdb.entity.TickId;
 import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
 import com.mdb.utils.ZCollectionUtil;
@@ -29,6 +30,8 @@ import java.util.*;
 
 public class MongoManager {
 
+    private String url;
+    private final static String DEFAULT_URL = "127.0.0.1:27017";
     private MongoClient mongoClient = null;
 
     static final CodecProvider[] array = new CodecProvider[]{
@@ -53,8 +56,30 @@ public class MongoManager {
         return instance;
     }
 
+
+    public MongoManager() {
+        this.url = DEFAULT_URL;
+        initClient(url);
+    }
+
+    public MongoManager(String url) {
+        this.url = url;
+        initClient(url);
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public void load(String url) {
+        initClient(url);
+    }
+
+    private void initClient(String url) {
         if (mongoClient == null) {
+            if (url == null) {
+                url = DEFAULT_URL;
+            }
             mongoClient = new MongoClient(url);
         }
     }
@@ -79,9 +104,6 @@ public class MongoManager {
 
     }
 
-    public void init(String cmd) {
-
-    }
 
     public void close() {
         mongoClient.close();
@@ -144,9 +166,9 @@ public class MongoManager {
         if (ZCollectionUtil.isEmpty(modify)) {
             return false;
         }
-        Document dp = new Document();
-        dp.put("$set", modify);
-        UpdateResult result = this.getCollection(t).updateOne(t.primaryKeys(), dp);
+        Document up = new Document();
+        up.put("$set", modify);
+        UpdateResult result = this.getCollection(t).updateOne(t.filters(), up);
         return result.wasAcknowledged();
     }
 
@@ -160,7 +182,7 @@ public class MongoManager {
             try {
                 Document modify = item.modify();
                 if (!ZCollectionUtil.isEmpty(modify)) {
-                    ups.add(new UpdateOneModel<>(item.primaryKeys(), new Document("$set", modify)));
+                    ups.add(new UpdateOneModel<>(item.filters(), new Document("$set", modify)));
                 }
             } catch (MException e) {
                 e.printStackTrace();
@@ -174,13 +196,13 @@ public class MongoManager {
         return result.wasAcknowledged();
     }
 
-    public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
+    public <T extends MongoPo> T get(Class<T> clazz, PrimaryKey... keys) throws MException {
 
         if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
         List<Bson> filters = new ArrayList<>();
-        for (MongoPrimaryKey key : keys) {
+        for (PrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
             filters.add(filter);
         }
@@ -194,12 +216,12 @@ public class MongoManager {
     }
 
 
-    public <T extends MongoPo> List<T> getAll(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
+    public <T extends MongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
         List<Bson> filters = new ArrayList<>();
         if (!ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
-        for (MongoPrimaryKey key : keys) {
+        for (PrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
             filters.add(filter);
         }
@@ -262,6 +284,22 @@ public class MongoManager {
             throw new MException("[error][mdb][query is empty]");
         }
         return null;
+    }
+
+    public <T extends MongoPo> long nextId(Class<T> tick) {
+        String key = tick.getSimpleName();
+        Document document = new Document();
+        document.put("key", key);
+        Document up = new Document();
+        up.put("$inc", new Document("value", 1));
+        MongoCollection<Document> collection = this.getCollection(TickId.class);
+        Document result = collection.findOneAndUpdate(document, up);
+        if (result == null) {
+            document.put("value", 1);
+            collection.insertOne(document);
+            return 1;
+        }
+        return result.getInteger("value");
     }
 
 

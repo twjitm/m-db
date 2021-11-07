@@ -1,7 +1,7 @@
 package com.mdb.utils;
 
 import com.google.common.base.CaseFormat;
-import com.mdb.entity.MongoPrimaryKey;
+import com.mdb.entity.PrimaryKey;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 
@@ -150,17 +150,17 @@ public class ZClassUtils {
         return path;
     }
 
-    public static <T> String getCachePk(Class<T> clazz, MongoPrimaryKey... pks) {
+    public static <T> String getCachePk(Class<T> clazz, PrimaryKey... pks) {
         StringBuilder baseKey = new StringBuilder(ZClassUtils.getPackageNameBy(clazz, ":"));
-        for (MongoPrimaryKey key : pks) {
+        for (PrimaryKey key : pks) {
             baseKey.append(":").append(key.getValue());
         }
         return baseKey.toString();
     }
 
-    public static <T> String getCachePk(Class<T> clazz, List<MongoPrimaryKey> pks) {
+    public static <T> String getCachePk(Class<T> clazz, List<PrimaryKey> pks) {
         StringBuilder baseKey = new StringBuilder(ZClassUtils.getPackageNameBy(clazz, ":"));
-        for (MongoPrimaryKey key : pks) {
+        for (PrimaryKey key : pks) {
             baseKey.append(":").append(key.getValue());
         }
         return baseKey.toString();

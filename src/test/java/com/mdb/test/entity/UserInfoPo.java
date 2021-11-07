@@ -11,8 +11,8 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 public class UserInfoPo extends AbstractMongoPo {
 
     @Indexed(name = "uid", unique = true)
-    @Field(name = "uid",readOnly = true)
-    @MongoId(name = "uid")
+    @Field(name = "uid", readOnly = true)
+    @MongoId(name = "uid", tick = true)
     private long uid;
 
     @Indexed(name = "name", unique = true)

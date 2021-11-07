@@ -2,7 +2,8 @@ package com.mdb.test;
 
 import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
-import com.mdb.entity.MongoPrimaryKey;
+import com.mdb.entity.PrimaryKey;
+import com.mdb.entity.TickId;
 import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.UserInfoPo;
@@ -18,11 +19,12 @@ public class Test {
         //findAll();
         //count();
         //update();
-        updateMany();
+        //updateMany();
+        nextId();
     }
 
     public static void createIndex() {
-        MongoManager.getInstance().createIndex(UserInfoPo.class);
+        MongoManager.getInstance().createIndex(TickId.class);
 
     }
 
@@ -40,7 +42,7 @@ public class Test {
     }
 
     public static void get() throws MException {
-        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, MongoPrimaryKey.builder("uid", 8));
+        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 8));
         System.out.println(user.toString());
     }
 
@@ -73,7 +75,7 @@ public class Test {
 
     public static void update() throws MException {
         UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class,
-                MongoPrimaryKey.builder("uid", 8));
+                PrimaryKey.builder("uid", 8));
         if (user == null) {
             return;
         }
@@ -88,6 +90,11 @@ public class Test {
                 QueryOptions.builder().skip(0).limit(4));
         res.forEach(item -> item.setAge((byte) 22));
         boolean successful = MongoManager.getInstance().updateMany(res);
+    }
+
+    public static void nextId() {
+        long id = MongoManager.getInstance().nextId(UserInfoPo.class);
+        System.out.println(id);
     }
 
 

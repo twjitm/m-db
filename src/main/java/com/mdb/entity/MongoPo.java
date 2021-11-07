@@ -18,7 +18,7 @@ public interface MongoPo {
 
     Document modify() throws MException;
 
-    Bson primaryKeys();
+    Bson filters();
 
     String toJsonString();
 

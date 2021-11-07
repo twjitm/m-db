@@ -15,13 +15,13 @@ public @interface MongoDocument {
      *
      * @return 返回一个数据库的名字
      */
-    String database() default "";
+    String database() default "mdb";
 
     /**
      * 文档名字
      *
      * @return 返回数据库中一个简单的文档的文档名字
      */
-    String collection() default "";
+    String collection();
 
 }

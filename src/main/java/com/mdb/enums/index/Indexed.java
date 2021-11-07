@@ -14,7 +14,7 @@ public @interface Indexed {
 
     boolean unique() default false;
 
-    String name() default "";
+    String name();
 
     int order() default -1;
 }

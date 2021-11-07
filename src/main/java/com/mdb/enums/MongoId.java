@@ -10,7 +10,22 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface MongoId {
 
+    /**
+     * 名字
+     * @return
+     */
     String name();
+
+    /**
+     * 是否为自增字段
+     * @return true 为自增，false 不自增
+     */
+    boolean tick() default false;
+
+    /**
+     * 排序，在json 中的位置
+     * @return
+     */
     int order() default 0;
 
 }
