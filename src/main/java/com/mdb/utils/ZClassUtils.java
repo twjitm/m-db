@@ -52,7 +52,13 @@ public class ZClassUtils {
         for (Field field : fileds) {
             field.setAccessible(true); // 私有属性必须设置访问权限
             Object v = getFieldVal(t, field);
-            String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
+            BsonProperty fd = field.getAnnotation(BsonProperty.class);
+            String name = "";
+            if (fd != null && !ZStringUtils.isEmpty(fd.value())) {
+                name = fd.value();
+            } else {
+                name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
+            }
             if (v == null) {
                 v = "";
             }
@@ -191,6 +197,28 @@ public class ZClassUtils {
         return rt;
     }
 
+    public static Field getField(Object obj, String fieldName) {
+        Field[] list = getAllFields(obj);
+        for (Field f : list) {
+            if (f.getName().equals(fieldName)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isReadOnlyField(Object obj, String fieldName) {
+        Field field = getDeclaredField(obj, fieldName);
+        if (field == null) {
+            return true;
+        }
+        com.mdb.enums.Field annotation = field.getAnnotation(com.mdb.enums.Field.class);
+        if (annotation == null) {
+            return false;
+        }
+        return annotation.readOnly();
+    }
+
     private static Field[] combine(Field[] a, Field[] b) {
         if (a == null) {
             return b;
@@ -222,7 +250,7 @@ public class ZClassUtils {
     }
 
     private static Field getDeclaredField(Object object, String fieldName) {
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
 
         while (clazz != Object.class) {
             try {

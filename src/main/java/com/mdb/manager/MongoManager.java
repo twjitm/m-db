@@ -137,7 +137,7 @@ public class MongoManager {
         return true;
     }
 
-    public <T extends MongoPo> boolean update(T t) {
+    public <T extends MongoPo> boolean update(T t) throws MException {
         if (t == null) {
             return false;
         }
@@ -145,6 +145,7 @@ public class MongoManager {
         if (ZCollectionUtil.isEmpty(modify)) {
             return false;
         }
+        //fixme bugfix
         UpdateResult result = this.getCollection(t).updateOne(t.primaryKeys(), modify);
         return result.wasAcknowledged();
     }
@@ -156,7 +157,7 @@ public class MongoManager {
 
     public <T extends MongoPo> T get(Class<T> clazz, MongoPrimaryKey... keys) throws MException {
 
-        if (!ZCollectionUtil.isEmpty(keys)) {
+        if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
         List<Bson> filters = new ArrayList<>();
@@ -166,7 +167,11 @@ public class MongoManager {
         }
         Bson filter = Filters.and(filters);
         MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        return this.getCollection(document).find(filter, clazz).first();
+        T t = this.getCollection(document).find(filter, clazz).first();
+        if (t != null) {
+            t.document();
+        }
+        return t;
     }
 
 
@@ -187,6 +192,7 @@ public class MongoManager {
         List<T> result = new ArrayList<>();
         while (items.hasNext()) {
             T t = items.next();
+            t.document();
             result.add(t);
         }
         return result;
@@ -202,7 +208,11 @@ public class MongoManager {
         }
         MongoCollection<Document> collection = this.getCollection(clazz);
         FindIterable<T> result = collection.find(ob, clazz);
-        return result.first();
+        T t = result.first();
+        if (t != null) {
+            t.document();
+        }
+        return t;
     }
 
     public <T extends MongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
@@ -221,7 +231,9 @@ public class MongoManager {
         MongoCursor<T> it = result.iterator();
         List<T> list = new ArrayList<>();
         while (it.hasNext()) {
-            list.add(it.next());
+            T t = it.next();
+            t.document();
+            list.add(t);
         }
         return list;
     }

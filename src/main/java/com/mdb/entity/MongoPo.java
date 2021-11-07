@@ -1,5 +1,6 @@
 package com.mdb.entity;
 
+import com.mdb.error.MException;
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -17,9 +18,11 @@ public interface MongoPo {
 
     Map<String, ?> data();
 
-    Document modify();
+    Document modify() throws MException;
 
     Bson primaryKeys();
+
+    String toJsonString();
 
 
 }

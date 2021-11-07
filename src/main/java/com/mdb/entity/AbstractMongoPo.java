@@ -3,6 +3,7 @@ package com.mdb.entity;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.enums.MongoId;
+import com.mdb.error.MException;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZTimeUtils;
 import com.mongodb.client.model.Filters;
@@ -80,15 +81,20 @@ abstract public class AbstractMongoPo implements MongoPo {
     }
 
     @Override
-    public Document modify() {
+    public Document modify() throws MException {
         Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
         Document modify = new Document();
-        kv.forEach((k, v) -> {
+        for (Map.Entry<String, Object> entry : kv.entrySet()) {
+            String k = entry.getKey();
+            Object v = entry.getValue();
             Object ov = document.get(k);
             if (ov != v) {
+                if (ZClassUtils.isReadOnlyField(this, k)) {
+                    throw new MException("write read only field name = " + k);
+                }
                 modify.put(k, v);
             }
-        });
+        }
         return modify;
     }
 
@@ -103,5 +109,10 @@ abstract public class AbstractMongoPo implements MongoPo {
             list.add(bq);
         });
         return Filters.and(list);
+    }
+
+    @Override
+    public String toJsonString() {
+        return this.document().toJson();
     }
 }

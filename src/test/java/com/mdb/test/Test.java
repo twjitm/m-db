@@ -16,7 +16,8 @@ public class Test {
         //add();
         //get();
         //findAll();
-        count();
+        //count();
+        update();
     }
 
     public static void createIndex() {
@@ -67,5 +68,16 @@ public class Test {
         long count = MongoManager.getInstance().count(UserInfoPo.class,
                 Query.builder().in("uid", 1, 2));
         System.out.println(count);
+    }
+
+    public static void update() throws MException {
+        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class,
+                MongoPrimaryKey.builder("uid", 8));
+        if (user == null) {
+            return;
+        }
+        user.setJob("java developer");
+        boolean successful = MongoManager.getInstance().update(user);
+
     }
 }
