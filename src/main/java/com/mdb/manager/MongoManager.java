@@ -226,9 +226,17 @@ public class MongoManager {
         return list;
     }
 
-    public <T extends MongoPo> T findOne(Aggregates aggregates) {
+    public <T extends MongoPo> T findOne(Aggregates aggregates) throws MException {
+        if (aggregates == null) {
+            throw new MException("[error][mdb][query is empty]");
+        }
         return null;
     }
 
+
+    public <T extends MongoPo> long count(Class<T> clazz, QueryBuilder query) {
+        BasicDBObject filter = (BasicDBObject) query.get();
+        return this.getCollection(clazz).countDocuments(filter);
+    }
 
 }

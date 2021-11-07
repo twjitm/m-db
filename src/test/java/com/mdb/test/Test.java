@@ -15,7 +15,8 @@ public class Test {
         // createIndex();
         //add();
         //get();
-        findAll();
+        //findAll();
+        count();
     }
 
     public static void createIndex() {
@@ -42,7 +43,7 @@ public class Test {
     }
 
     public static void findOne() throws MException {
-        UserInfoPo res = MongoManager.getInstance().findOne(UserInfoPo.class, Query.builder().add("job", "developer"));
+        UserInfoPo res = MongoManager.getInstance().findOne(UserInfoPo.class, Query.builder().and("job", "developer"));
         if (res != null) {
             System.out.println(res.toString());
         }
@@ -50,12 +51,21 @@ public class Test {
 
     public static void findAll() throws MException {
 
-        List<UserInfoPo> res = MongoManager.getInstance().findAll(UserInfoPo.class, Query.builder().add("job", "developer"),
+        List<UserInfoPo> res = MongoManager.getInstance().findAll(UserInfoPo.class, Query.builder().and("job", "developer"),
                 QueryOptions.builder().skip(0).limit(4));
         if (res != null) {
             for (UserInfoPo infoPo : res) {
                 System.out.println(infoPo.toString());
             }
         }
+    }
+
+    public static void count() {
+        //long count = MongoManager.getInstance().count(UserInfoPo.class, Query.builder().add("uid", 1));
+        //long count = MongoManager.getInstance().count(UserInfoPo.class,
+        //long count = Query.builder().or("uid", 1).or("uid", 2).and("job", "developer"));
+        long count = MongoManager.getInstance().count(UserInfoPo.class,
+                Query.builder().in("uid", 1, 2));
+        System.out.println(count);
     }
 }
