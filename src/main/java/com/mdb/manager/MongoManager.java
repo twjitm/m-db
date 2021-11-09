@@ -1,5 +1,6 @@
 package com.mdb.manager;
 
+import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.PrimaryKey;
@@ -195,6 +196,19 @@ public class MongoManager {
         BulkWriteResult result = collection.bulkWrite(ups);
         return result.wasAcknowledged();
     }
+
+    public <T extends MongoPo> void delete(T t) {
+
+    }
+
+    public <T extends MongoPo> void delete(Class<T> clazz, PrimaryKey... keys) {
+
+    }
+
+    public <T extends MongoPo> void delete(Class<T> clazz, Query query) {
+
+    }
+
 
     public <T extends MongoPo> T get(Class<T> clazz, PrimaryKey... keys) throws MException {
 
