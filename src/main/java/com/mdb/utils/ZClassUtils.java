@@ -213,7 +213,7 @@ public class ZClassUtils {
         return null;
     }
 
-    public static boolean isReadOnlyField(Object obj, String fieldName) {
+    public static boolean readOnlyField(Object obj, String fieldName) {
         Field field = getDeclaredField(obj, fieldName);
         if (field == null) {
             return true;

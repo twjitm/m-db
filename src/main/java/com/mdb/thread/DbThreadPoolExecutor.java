@@ -44,8 +44,7 @@ public class DbThreadPoolExecutor {
 
         @Override
         public Thread newThread(Runnable r) {
-            Thread t = new Thread(_group, r, _name + "-" + _threadNumber.getAndIncrement());
-            return t;
+            return new Thread(_group, r, _name + "-" + _threadNumber.getAndIncrement());
         }
 
         public ThreadGroup getGroup() {

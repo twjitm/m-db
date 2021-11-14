@@ -68,7 +68,7 @@ abstract public class AbstractMongoPo implements MongoPo {
             Object v = entry.getValue();
             Object ov = document.get(k);
             if ((ov == null && v != null) || (ov != null && v == null) ||(!Objects.equals(ov, v))) {
-                if (ZClassUtils.isReadOnlyField(this, k)) {
+                if (ZClassUtils.readOnlyField(this, k)) {
                     throw new MException("write read only field name = " + k);
                 }
                 modify.put(k, v);
