@@ -1,2 +1,2 @@
 # m-db
-mongodb orm to java
+Java ORM for mongodb
