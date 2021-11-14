@@ -140,6 +140,12 @@ public class ZClassUtils {
         return t;
     }
 
+    public static <T> void setField(T t, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field field = t.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(t, value);
+    }
+
     public static <T> String getPackageNameBy(Class<T> clazz, String replace) {
         String path = classPool.get(clazz);
         if (path == null) {
@@ -210,6 +216,10 @@ public class ZClassUtils {
     public static boolean isReadOnlyField(Object obj, String fieldName) {
         Field field = getDeclaredField(obj, fieldName);
         if (field == null) {
+            return true;
+        }
+        com.mdb.enums.MongoId mongoId = field.getAnnotation(com.mdb.enums.MongoId.class);
+        if (mongoId != null) {
             return true;
         }
         com.mdb.enums.Field annotation = field.getAnnotation(com.mdb.enums.Field.class);

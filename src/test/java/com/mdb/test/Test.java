@@ -8,20 +8,34 @@ import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.UserInfoPo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Test {
+
+
     public static void main(String[] args) throws MException {
-        MongoManager.getInstance().load("127.0.0.1:27017");
+        //MongoManager.getInstance().load("127.0.0.1:27017");
+        init();
         // createIndex();
-        //add();
+        // add();
+        addMany();
         //get();
         //findAll();
         //count();
         //update();
         //updateMany();
         //nextId();
-        delete();
+        // delete();
+
+    }
+
+    static MongoManager mongoManager;
+
+    private static void init() {
+        mongoManager = new MongoManager();
+        mongoManager.setUrl("127.0.0.1:27017");
+        mongoManager.setAsync(true);
     }
 
     public static void createIndex() {
@@ -29,16 +43,35 @@ public class Test {
 
     }
 
-    public static void add() {
+    public static void add() throws MException {
 
         for (int i = 1; i < 100; i++) {
             UserInfoPo user = new UserInfoPo();
-            user.setUid(i);
             user.setAge((byte) 26);
             user.setName("twj_" + i);
             user.setJob("developer");
             user.setJobType(i);
-            boolean successful = MongoManager.getInstance().add(user);
+            boolean successful = mongoManager.add(user);
+            if (successful) {
+                System.out.println("insert successful=" + user.getUid());
+            }
+        }
+    }
+
+    public static void addMany() throws MException {
+
+        List<UserInfoPo> list = new ArrayList<>();
+        for (int i = 1; i < 100; i++) {
+            UserInfoPo user = new UserInfoPo();
+            user.setAge((byte) 26);
+            user.setName("twj_" + i);
+            user.setJob("developer");
+            user.setJobType(i);
+            list.add(user);
+        }
+        boolean successful = mongoManager.addMany(list);
+        if (successful) {
+            System.out.println("insert many successful");
         }
     }
 

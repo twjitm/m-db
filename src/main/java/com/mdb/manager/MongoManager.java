@@ -8,7 +8,9 @@ import com.mdb.entity.PrimaryKey;
 import com.mdb.entity.TickId;
 import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
+import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
+import com.mdb.utils.ZStringUtils;
 import com.mongodb.*;
 
 import com.mongodb.MongoClient;
@@ -18,6 +20,7 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import org.apache.commons.lang3.ClassUtils;
 import org.bson.Document;
 import org.bson.codecs.BsonValueCodecProvider;
 import org.bson.codecs.DocumentCodecProvider;
@@ -40,7 +43,10 @@ public class MongoManager {
     private MongoClient mongoClient = null;
     private final BlockingQueue<MongoTask<Document>> taskPoll = new LinkedBlockingQueue<MongoTask<Document>>();
 
-    private boolean sync;
+    /**
+     * 是否开启异步操作：针对于更新，删除，插入操作开启异步过程
+     */
+    private boolean async;
 
     static final CodecProvider[] array = new CodecProvider[]{
             new ValueCodecProvider(),
@@ -77,6 +83,10 @@ public class MongoManager {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public void setAsync(boolean async) {
+        this.async = async;
     }
 
     public void load(String url) {
@@ -143,25 +153,48 @@ public class MongoManager {
     }
 
 
-    public <T extends MongoPo> boolean add(T t) {
+    public <T extends MongoPo> boolean add(T t) throws MException {
         if (t == null) {
             return false;
         }
         Class<? extends MongoPo> clazz = t.getClass();
-        MongoDocument mongoDocument = clazz.getAnnotation(MongoDocument.class);
-        MongoCollection<Document> db = this.getCollection(mongoDocument);
-        db.insertOne(t.document());
-        return false;
+        MongoCollection<Document> db = this.getCollection(t);
+        Document document = t.document();
+        String tickName = t.tick();
+        if (!ZStringUtils.isEmpty(tickName)) {
+            long id = this.nextId(clazz);
+            document.put(tickName, this.nextId(clazz));
+            try {
+                ZClassUtils.setField(t, tickName, id);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        db.insertOne(document);
+        return true;
     }
 
 
-    public <T extends MongoPo> boolean addMany(List<T> list) {
+    public <T extends MongoPo> boolean addMany(List<T> list) throws MException {
         BulkWriteOptions op = new BulkWriteOptions().ordered(true);
         List<InsertOneModel<Document>> ins = new ArrayList<>();
         T t = list.get(0);
         Class<? extends MongoPo> clazz = t.getClass();
         MongoDocument mongoDocument = clazz.getAnnotation(MongoDocument.class);
-        list.forEach(item -> ins.add(new InsertOneModel<>(item.document())));
+        for (T item : list) {
+            Document document = item.document();
+            String tickName = t.tick();
+            if (!ZStringUtils.isEmpty(tickName)) {
+                long id = this.nextId(clazz);
+                document.put(tickName, id);
+                try {
+                    ZClassUtils.setField(t, tickName, id);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            ins.add(new InsertOneModel<>(document));
+        }
         this.getCollection(mongoDocument).bulkWrite(ins, op);
         return true;
     }
@@ -206,7 +239,7 @@ public class MongoManager {
 
     public <T extends MongoPo> boolean delete(T t) {
         if (t == null) {
-            return  false;
+            return false;
         }
         MongoCollection<Document> collection = getCollection(t);
         DeleteResult result = collection.deleteOne(t.filters());

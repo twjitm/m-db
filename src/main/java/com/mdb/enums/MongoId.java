@@ -12,19 +12,22 @@ public @interface MongoId {
 
     /**
      * 名字
-     * @return
+     *
+     * @return return id name
      */
     String name();
 
     /**
-     * 是否为自增字段
+     * 是否为自增字段,一个实体中应该只有一个字段属于自增字段
+     *
      * @return true 为自增，false 不自增
      */
     boolean tick() default false;
 
     /**
      * 排序，在json 中的位置
-     * @return
+     *
+     * @return return order
      */
     int order() default 0;
 

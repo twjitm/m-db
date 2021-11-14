@@ -89,6 +89,25 @@ abstract public class AbstractMongoPo implements MongoPo {
         return Filters.and(list);
     }
 
+
+    @Override
+    public String tick() throws MException {
+        List<MongoId> pks = ZClassUtils.getFieldAnnotations(this, MongoId.class);
+        int i = 0;
+        String tick = "";
+        for (MongoId id : pks) {
+            if (id.tick()) {
+                i++;
+                tick = id.name();
+            }
+        }
+        if (i > 2) {
+            throw new MException("tick id repetitive");
+        }
+        return tick;
+    }
+
+
     @Override
     public String toJsonString() {
         return this.document().toJson();

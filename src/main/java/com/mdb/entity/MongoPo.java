@@ -20,6 +20,8 @@ public interface MongoPo {
 
     Bson filters();
 
+    String tick() throws MException;
+
     String toJsonString();
 
 
