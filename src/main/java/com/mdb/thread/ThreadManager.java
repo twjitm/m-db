@@ -1,11 +1,11 @@
-package com.mdb.utils;
+package com.mdb.thread;
 
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.*;
 
 
-public class ThreadUtils {
+public class ThreadManager {
 
     private static final class RunnableWrapper implements Runnable {
         private final Runnable _r;
@@ -36,13 +36,14 @@ public class ThreadUtils {
 
     private boolean _shutdown;
 
-    public static ThreadUtils getInstance() {
+    public static ThreadManager getInstance() {
         return SingletonHolder._instance;
     }
 
 
-    protected ThreadUtils() {
+    protected ThreadManager() {
         _generalThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+        _generalScheduledThreadPool = new ScheduledThreadPoolExecutor(0, new DbThreadPoolExecutor.NamedThreadFactory("db"));
         scheduleGeneralAtFixedRate(new PurgeTask(), 10, 5, TimeUnit.MINUTES);
     }
 
@@ -203,6 +204,6 @@ public class ThreadUtils {
     }
 
     private static class SingletonHolder {
-        protected static final ThreadUtils _instance = new ThreadUtils();
+        protected static final ThreadManager _instance = new ThreadManager();
     }
 }

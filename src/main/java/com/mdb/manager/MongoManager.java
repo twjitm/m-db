@@ -1,6 +1,5 @@
 package com.mdb.manager;
 
-import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.MongoTask;
@@ -8,6 +7,7 @@ import com.mdb.entity.PrimaryKey;
 import com.mdb.entity.TickId;
 import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
+import com.mdb.thread.ThreadManager;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
 import com.mdb.utils.ZStringUtils;
@@ -20,7 +20,6 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.apache.commons.lang3.ClassUtils;
 import org.bson.Document;
 import org.bson.codecs.BsonValueCodecProvider;
 import org.bson.codecs.DocumentCodecProvider;
@@ -32,8 +31,10 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class MongoManager {
@@ -41,12 +42,14 @@ public class MongoManager {
     private String url;
     private final static String DEFAULT_URL = "127.0.0.1:27017";
     private MongoClient mongoClient = null;
-    private final BlockingQueue<MongoTask<Document>> taskPoll = new LinkedBlockingQueue<MongoTask<Document>>();
+    private final BlockingQueue<MongoTask<Document>> taskQueue = new ArrayBlockingQueue<>(1024, true);
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<WriteModel<Document>>> pool = new ConcurrentHashMap<>();
 
     /**
      * 是否开启异步操作：针对于更新，删除，插入操作开启异步过程
      */
     private boolean async;
+    private boolean stop = false;
 
     static final CodecProvider[] array = new CodecProvider[]{
             new ValueCodecProvider(),
@@ -73,12 +76,16 @@ public class MongoManager {
 
     public MongoManager() {
         this.url = DEFAULT_URL;
+        this.async = false;
         initClient(url);
+
     }
 
-    public MongoManager(String url) {
+    public MongoManager(String url, boolean async) {
         this.url = url;
+        this.async = async;
         initClient(url);
+        initAsync();
     }
 
     public void setUrl(String url) {
@@ -87,6 +94,7 @@ public class MongoManager {
 
     public void setAsync(boolean async) {
         this.async = async;
+        initAsync();
     }
 
     public void load(String url) {
@@ -101,6 +109,66 @@ public class MongoManager {
             mongoClient = new MongoClient(url);
         }
     }
+
+    public void shutdown() {
+        this.stop = true;
+        ThreadManager.getInstance().shutdown();
+    }
+
+
+    /**
+     * 初始化异步执行环境
+     */
+    private void initAsync() {
+        if (!this.async) {
+            return;
+        }
+        ThreadManager.getInstance().executeGeneral(() -> {
+            while (!stop) {
+                try {
+                    MongoTask<Document> task = taskQueue.take();
+                    CopyOnWriteArrayList<WriteModel<Document>> list = pool.get(task.getKey());
+                    if (list == null) {
+                        list = new CopyOnWriteArrayList<>();
+                        list.add(task.getModel());
+                    } else {
+                        list.add(task.getModel());
+                    }
+                    pool.put(task.getKey(), list);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        ThreadManager.getInstance().scheduleGeneralAtFixedRate(this::toSave, 1, 5);
+    }
+
+
+    private boolean put(MongoTask<Document> task) {
+        if (task == null) {
+            return false;
+        }
+        if (task.getModel() == null) {
+            return false;
+        }
+        try {
+            this.taskQueue.put(task);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    private void toSave() {
+        if (pool.isEmpty()) {
+            return;
+        }
+        System.out.println("save save");
+        pool.forEach((k, v) -> getCollection(k).bulkWrite(v));
+        pool.clear();
+    }
+
 
     public <T extends MongoPo> void createIndex(Class<T> clazz) {
 
@@ -138,6 +206,18 @@ public class MongoManager {
         return db;
     }
 
+    private MongoCollection<Document> getCollection(String key) {
+
+        MongoCollection<Document> db = collections.get(key);
+        if (db == null) {
+            String[] sp = key.split(":");
+            MongoDatabase dbs = mongoClient.getDatabase(sp[0]);
+            db = dbs.withCodecRegistry(DEFAULT_CODEC_REGISTRY).getCollection(sp[1]);
+            collections.put(key, db);
+        }
+        return db;
+    }
+
     private MongoCollection<Document> getCollection(MongoDocument document) {
         return this.getCollection(document.database(), document.collection());
     }
@@ -170,6 +250,9 @@ public class MongoManager {
                 e.printStackTrace();
             }
         }
+        if (async) {
+            return this.put(MongoTask.builder(t.database(), t.collection(), new InsertOneModel<>(document)));
+        }
         db.insertOne(document);
         return true;
     }
@@ -193,9 +276,15 @@ public class MongoManager {
                     e.printStackTrace();
                 }
             }
-            ins.add(new InsertOneModel<>(document));
+            if (async) {
+                this.put(MongoTask.builder(item.database(), item.collection(), new InsertOneModel<>(document)));
+            } else {
+                ins.add(new InsertOneModel<>(document));
+            }
         }
-        this.getCollection(mongoDocument).bulkWrite(ins, op);
+        if (!ZCollectionUtil.isEmpty(ins) && !async) {
+            this.getCollection(mongoDocument).bulkWrite(ins, op);
+        }
         return true;
     }
 
@@ -209,6 +298,9 @@ public class MongoManager {
         }
         Document up = new Document();
         up.put("$set", modify);
+        if (async) {
+            return this.put(MongoTask.builder(t.database(), t.collection(), new UpdateOneModel<>(t.filters(), up)));
+        }
         UpdateResult result = this.getCollection(t).updateOne(t.filters(), up);
         return result.wasAcknowledged();
     }
@@ -223,7 +315,12 @@ public class MongoManager {
             try {
                 Document modify = item.modify();
                 if (!ZCollectionUtil.isEmpty(modify)) {
-                    ups.add(new UpdateOneModel<>(item.filters(), new Document("$set", modify)));
+                    if (async) {
+                        this.put(MongoTask.builder(item.database(), item.collection(), new UpdateOneModel<>(item.filters(),
+                                new Document("$set", modify))));
+                    } else {
+                        ups.add(new UpdateOneModel<>(item.filters(), new Document("$set", modify)));
+                    }
                 }
             } catch (MException e) {
                 e.printStackTrace();
@@ -240,6 +337,9 @@ public class MongoManager {
     public <T extends MongoPo> boolean delete(T t) {
         if (t == null) {
             return false;
+        }
+        if (async) {
+            return this.put(MongoTask.builder(t.database(), t.collection(), new DeleteOneModel<>(t.filters())));
         }
         MongoCollection<Document> collection = getCollection(t);
         DeleteResult result = collection.deleteOne(t.filters());

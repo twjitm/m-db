@@ -18,7 +18,7 @@ public class UserInfoPo extends AbstractMongoPo {
     @Indexed(name = "name", unique = true)
     private String name;
 
-    private byte age;
+    private int age;
 
     private String job;
 
@@ -41,11 +41,11 @@ public class UserInfoPo extends AbstractMongoPo {
         this.name = name;
     }
 
-    public byte getAge() {
+    public int getAge() {
         return age;
     }
 
-    public void setAge(byte age) {
+    public void setAge(int age) {
         this.age = age;
     }
 

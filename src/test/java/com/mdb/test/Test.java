@@ -19,7 +19,7 @@ public class Test {
         init();
         // createIndex();
         // add();
-        addMany();
+        //  addMany();
         //get();
         //findAll();
         //count();
@@ -27,7 +27,13 @@ public class Test {
         //updateMany();
         //nextId();
         // delete();
+        asyncOp();
 
+        try {
+            Thread.sleep(99999999);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     static MongoManager mongoManager;
@@ -40,7 +46,6 @@ public class Test {
 
     public static void createIndex() {
         MongoManager.getInstance().createIndex(TickId.class);
-
     }
 
     public static void add() throws MException {
@@ -138,4 +143,16 @@ public class Test {
     }
 
 
+    public static void asyncOp() throws MException {
+        UserInfoPo user = mongoManager.get(UserInfoPo.class, PrimaryKey.builder("uid", 407));
+        user.setAge(27);
+        mongoManager.update(user);
+        user.setJob("java developer");
+        mongoManager.update(user);
+        UserInfoPo user2 = mongoManager.get(UserInfoPo.class, PrimaryKey.builder("uid", 408));
+        user2.setAge(28);
+        mongoManager.update(user2);
+        user2.setJob("java developer");
+        mongoManager.update(user2);
+    }
 }

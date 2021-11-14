@@ -1,5 +1,6 @@
 package com.mdb.entity;
 
+import com.mdb.enums.MongoDocument;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.enums.MongoId;
@@ -66,7 +67,7 @@ abstract public class AbstractMongoPo implements MongoPo {
             String k = entry.getKey();
             Object v = entry.getValue();
             Object ov = document.get(k);
-            if (ov != v) {
+            if ((ov == null && v != null) || (ov != null && v == null) ||(!Objects.equals(ov, v))) {
                 if (ZClassUtils.isReadOnlyField(this, k)) {
                     throw new MException("write read only field name = " + k);
                 }
@@ -107,6 +108,18 @@ abstract public class AbstractMongoPo implements MongoPo {
         return tick;
     }
 
+    @Override
+    public String database() {
+        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
+        return document.database();
+    }
+
+
+    @Override
+    public String collection() {
+        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
+        return document.collection();
+    }
 
     @Override
     public String toJsonString() {
