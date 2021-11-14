@@ -3,6 +3,7 @@ package com.mdb.manager;
 import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.MongoPo;
+import com.mdb.entity.MongoTask;
 import com.mdb.entity.PrimaryKey;
 import com.mdb.entity.TickId;
 import com.mdb.enums.MongoDocument;
@@ -15,6 +16,7 @@ import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.model.geojson.codecs.GeoJsonCodecProvider;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.codecs.BsonValueCodecProvider;
@@ -27,6 +29,8 @@ import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class MongoManager {
@@ -34,6 +38,9 @@ public class MongoManager {
     private String url;
     private final static String DEFAULT_URL = "127.0.0.1:27017";
     private MongoClient mongoClient = null;
+    private final BlockingQueue<MongoTask<Document>> taskPoll = new LinkedBlockingQueue<MongoTask<Document>>();
+
+    private boolean sync;
 
     static final CodecProvider[] array = new CodecProvider[]{
             new ValueCodecProvider(),
@@ -197,18 +204,26 @@ public class MongoManager {
         return result.wasAcknowledged();
     }
 
-    public <T extends MongoPo> void delete(T t) {
-
+    public <T extends MongoPo> boolean delete(T t) {
+        if (t == null) {
+            return  false;
+        }
+        MongoCollection<Document> collection = getCollection(t);
+        DeleteResult result = collection.deleteOne(t.filters());
+        return result.getDeletedCount() == 1;
     }
 
-    public <T extends MongoPo> void delete(Class<T> clazz, PrimaryKey... keys) {
-
+    public <T extends MongoPo> boolean delete(Class<T> clazz, PrimaryKey... keys) {
+        MongoCollection<Document> collection = getCollection(clazz);
+        List<Bson> filters = new ArrayList<>();
+        for (PrimaryKey key : keys) {
+            Bson filter = Filters.eq(key.getName(), key.getValue());
+            filters.add(filter);
+        }
+        Bson filter = Filters.and(filters);
+        DeleteResult result = collection.deleteOne(filter);
+        return result.getDeletedCount() == keys.length;
     }
-
-    public <T extends MongoPo> void delete(Class<T> clazz, Query query) {
-
-    }
-
 
     public <T extends MongoPo> T get(Class<T> clazz, PrimaryKey... keys) throws MException {
 

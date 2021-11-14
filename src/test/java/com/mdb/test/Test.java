@@ -20,7 +20,8 @@ public class Test {
         //count();
         //update();
         //updateMany();
-        nextId();
+        //nextId();
+        delete();
     }
 
     public static void createIndex() {
@@ -95,6 +96,12 @@ public class Test {
     public static void nextId() {
         long id = MongoManager.getInstance().nextId(UserInfoPo.class);
         System.out.println(id);
+    }
+
+    public static void delete() throws MException {
+        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
+        boolean successful = MongoManager.getInstance().delete(user);
+        System.out.println(successful);
     }
 
 
