@@ -1,5 +1,6 @@
 package com.mdb.entity;
 
+import com.mdb.enums.MongoDocument;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.WriteModel;
 
@@ -42,5 +43,19 @@ public class MongoTask<T> {
         task.setModel(model);
         return task;
 
+    }
+
+    public static <T> MongoTask<T> builder(MongoDocument document, WriteModel<T> model) {
+        MongoTask<T> task = new MongoTask<T>();
+        task.setKey(document.database() + ":" + document.collection());
+        task.setModel(model);
+        return task;
+    }
+
+    public static <T, E extends MongoPo> MongoTask<T> builder(Class<E> clazz, WriteModel<T> model) {
+        MongoDocument document = clazz.getAnnotation(MongoDocument.class);
+        MongoTask<T> task = new MongoTask<T>();
+        task.setKey(document.database() + ":" + document.collection());
+        task.setModel(model);
     }
 }

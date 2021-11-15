@@ -354,6 +354,9 @@ public class MongoManager {
             filters.add(filter);
         }
         Bson filter = Filters.and(filters);
+        if (async) {
+            return this.put(MongoTask.builder(clazz, new DeleteOneModel<>(filter)));
+        }
         DeleteResult result = collection.deleteOne(filter);
         return result.getDeletedCount() == keys.length;
     }
@@ -447,6 +450,16 @@ public class MongoManager {
         }
         return null;
     }
+
+    public <T extends MongoPo> T findOne(Class<T> clazz, Filters filters, QueryOptions options) {
+        MongoCollection<Document> collection = getCollection(clazz);
+        return null;
+    }
+
+    private <T extends MongoPo> List<T> find() {
+        return null;
+    }
+
 
     public <T extends MongoPo> long nextId(Class<T> tick) {
         String key = tick.getSimpleName();
