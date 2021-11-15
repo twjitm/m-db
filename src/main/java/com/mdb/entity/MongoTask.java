@@ -57,5 +57,6 @@ public class MongoTask<T> {
         MongoTask<T> task = new MongoTask<T>();
         task.setKey(document.database() + ":" + document.collection());
         task.setModel(model);
+        return  task;
     }
 }

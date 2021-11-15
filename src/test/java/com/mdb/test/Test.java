@@ -18,7 +18,7 @@ public class Test {
         //MongoManager.getInstance().load("127.0.0.1:27017");
         init();
         // createIndex();
-        // add();
+         add();
         //  addMany();
         //get();
         //findAll();
@@ -27,7 +27,7 @@ public class Test {
         //updateMany();
         //nextId();
         // delete();
-        asyncOp();
+        //asyncOp();
 
         try {
             Thread.sleep(99999999);
@@ -39,8 +39,7 @@ public class Test {
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager();
-        mongoManager.setUrl("127.0.0.1:27017");
+        mongoManager = new MongoManager("127.0.0.1:27017");
         mongoManager.setAsync(true);
     }
 

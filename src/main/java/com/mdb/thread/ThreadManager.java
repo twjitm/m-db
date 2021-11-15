@@ -44,6 +44,8 @@ public class ThreadManager {
     protected ThreadManager() {
         _generalThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
         _generalScheduledThreadPool = new ScheduledThreadPoolExecutor(0, new DbThreadPoolExecutor.NamedThreadFactory("db"));
+        _eventScheduledThreadPool = new ScheduledThreadPoolExecutor(0, new DbThreadPoolExecutor.NamedThreadFactory("db-event"));
+
         scheduleGeneralAtFixedRate(new PurgeTask(), 10, 5, TimeUnit.MINUTES);
     }
 
