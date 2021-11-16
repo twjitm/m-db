@@ -4,13 +4,10 @@ import com.mdb.entity.MongoPo;
 
 import java.lang.annotation.*;
 
-/**
- * 文档标记：给一个实体类标记上对应一个文档
- */
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface MongoDocument {
+public @interface MongoNestedDocument {
 
     /**
      * 嵌入在那个父文档
@@ -39,5 +36,4 @@ public @interface MongoDocument {
      * @return 返回数据库中一个简单的文档的文档名字
      */
     String collection();
-
 }
