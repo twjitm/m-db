@@ -141,7 +141,8 @@ public class ZClassUtils {
     }
 
     public static <T> void setField(T t, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field field = t.getClass().getDeclaredField(fieldName);
+        String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName);
+        Field field = t.getClass().getDeclaredField(name);
         field.setAccessible(true);
         field.set(t, value);
     }
@@ -219,14 +220,7 @@ public class ZClassUtils {
             return true;
         }
         com.mdb.enums.MongoId mongoId = field.getAnnotation(com.mdb.enums.MongoId.class);
-        if (mongoId != null) {
-            return true;
-        }
-        com.mdb.enums.Field annotation = field.getAnnotation(com.mdb.enums.Field.class);
-        if (annotation == null) {
-            return false;
-        }
-        return annotation.readOnly();
+        return mongoId != null;
     }
 
     private static Field[] combine(Field[] a, Field[] b) {

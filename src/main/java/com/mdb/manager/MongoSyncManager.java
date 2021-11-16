@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 class MongoSyncManager {
 
     private final BlockingQueue<MongoTask<Document>> taskQueue = new ArrayBlockingQueue<>(1024, true);
-    private final ConcurrentHashMap<String, CopyOnWriteArrayList<WriteModel<Document>>> pool = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<WriteModel<Document>>> pool = new ConcurrentHashMap<>(1024);
     private boolean stop;
     private final boolean async;
     private final MongoCollectionManager collectionManager;

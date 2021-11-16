@@ -6,21 +6,26 @@ import com.mdb.entity.PrimaryKey;
 import com.mdb.entity.TickId;
 import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
+import com.mdb.test.entity.BuildPo;
 import com.mdb.test.entity.UserInfoPo;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 简单文档模型的crud
+ */
 public class Test {
 
 
     public static void main(String[] args) throws MException {
         //MongoManager.getInstance().load("127.0.0.1:27017");
-        init();
-        // createIndex();
-         add();
+        //init();
+        //createIndex();
+        //add();
         //  addMany();
-        //get();
+        //addManyBuild();
+        get();
         //findAll();
         //count();
         //update();
@@ -29,21 +34,35 @@ public class Test {
         // delete();
         //asyncOp();
 
-        try {
-            Thread.sleep(99999999);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+//        try {
+//            Thread.sleep(99999999);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        // getAll();
+    }
+
+    private static void addManyBuild() throws MException {
+        List<BuildPo> list = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            BuildPo po = new BuildPo();
+            po.setUid(2049);
+            po.setX(i);
+            po.setY(i);
+            list.add(po);
         }
+        MongoManager.getInstance().addMany(list);
     }
 
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager("127.0.0.1:27017",true);
+        mongoManager = new MongoManager("127.0.0.1:27017", true);
     }
 
     public static void createIndex() {
-        MongoManager.getInstance().createIndex(TickId.class);
+        MongoManager.getInstance().createIndex(BuildPo.class);
     }
 
     public static void add() throws MException {
@@ -80,7 +99,18 @@ public class Test {
 
     public static void get() throws MException {
         UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 8));
-        System.out.println(user.toString());
+        //  System.out.println(user.toString());
+        BuildPo build = MongoManager.getInstance().get(BuildPo.class,
+                PrimaryKey.builder("uid", 2049),
+                PrimaryKey.builder("build_id", 256));
+
+        System.out.println(build.getBuildId() + "|" + build.getX() + "|" + build.getY());
+    }
+
+
+    public static void getAll() throws MException {
+        List<BuildPo> list = MongoManager.getInstance().getAll(BuildPo.class, PrimaryKey.builder("uid", 2049));
+        System.out.println(list.size());
     }
 
     public static void findOne() throws MException {
