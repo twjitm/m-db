@@ -39,8 +39,7 @@ public class Test {
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager("127.0.0.1:27017");
-        mongoManager.setAsync(true);
+        mongoManager = new MongoManager("127.0.0.1:27017",true);
     }
 
     public static void createIndex() {

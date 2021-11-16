@@ -67,10 +67,6 @@ public class MongoManager {
         initAsync();
     }
 
-    public void load(String url) {
-        initClient(url);
-    }
-
     private void initClient(String url) {
         if (mongoCollectionManager != null) {
             return;
