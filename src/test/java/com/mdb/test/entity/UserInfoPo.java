@@ -1,6 +1,6 @@
 package com.mdb.test.entity;
 
-import com.mdb.entity.AbstractMongoPo;
+import com.mdb.entity.AbstractNestedMongoPo;
 import com.mdb.enums.*;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
@@ -8,7 +8,7 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "name")})
 @MongoDocument(database = "mdb", collection = "user_info")
-public class UserInfoPo extends AbstractMongoPo {
+public class UserInfoPo extends AbstractNestedMongoPo {
 
     @Indexed(name = "uid", unique = true)
     @MongoId(name = "uid", tick = true)

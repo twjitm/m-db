@@ -118,7 +118,7 @@ public class MongoManager {
         }
         Class<? extends MongoPo> clazz = t.getClass();
         MongoCollection<Document> db = mongoCollectionManager.getCollection(t);
-        Document document = t.document();
+        Document document = t.saveDocument();
         String tickName = t.tick();
         if (!ZStringUtils.isEmpty(tickName)) {
             long id = this.nextId(clazz);

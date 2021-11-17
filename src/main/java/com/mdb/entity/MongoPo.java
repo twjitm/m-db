@@ -1,5 +1,6 @@
 package com.mdb.entity;
 
+import com.mdb.enums.MongoId;
 import com.mdb.exception.MException;
 import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
@@ -19,6 +20,12 @@ public interface MongoPo {
      * @return 返回mongo存储文档
      */
     Document document();
+
+    /**
+     *存储文档
+     * @return 返回mongo存储文档
+     */
+    Document saveDocument();
 
     /**
      * 文档索引
@@ -56,6 +63,8 @@ public interface MongoPo {
      * @throws MException 不可重复异常
      */
     String tick() throws MException;
+
+    List<MongoId> mongoIds();
 
     /**
      * json 数据

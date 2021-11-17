@@ -1,6 +1,6 @@
 package com.mdb.enums;
 
-import com.mdb.entity.MongoPo;
+import com.mdb.entity.NestedMongoPo;
 
 import java.lang.annotation.*;
 
@@ -17,7 +17,7 @@ public @interface MongoDocument {
      *
      * @return 父文档实体
      */
-    Class<? extends MongoPo> rooter() default MongoPo.class;
+    Class<? extends NestedMongoPo> rooter() default NestedMongoPo.class;
 
     /**
      * 嵌入字段名字

@@ -20,12 +20,12 @@ public class Test {
 
     public static void main(String[] args) throws MException {
         //MongoManager.getInstance().load("127.0.0.1:27017");
-        //init();
+        init();
         //createIndex();
-        //add();
+        add();
         //  addMany();
         //addManyBuild();
-        get();
+       // get();
         //findAll();
         //count();
         //update();
@@ -58,16 +58,16 @@ public class Test {
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager("127.0.0.1:27017", true);
+        mongoManager = new MongoManager("127.0.0.1:27017", false);
     }
 
     public static void createIndex() {
-        MongoManager.getInstance().createIndex(BuildPo.class);
+        MongoManager.getInstance().createIndex(UserInfoPo.class);
     }
 
     public static void add() throws MException {
 
-        for (int i = 1; i < 100; i++) {
+        for (int i = 1; i < 10; i++) {
             UserInfoPo user = new UserInfoPo();
             user.setAge((byte) 26);
             user.setName("twj_" + i);
