@@ -13,20 +13,6 @@ import java.lang.annotation.*;
 public @interface MongoDocument {
 
     /**
-     * 嵌入在那个父文档
-     *
-     * @return 父文档实体
-     */
-    Class<? extends NestedMongoPo> rooter() default NestedMongoPo.class;
-
-    /**
-     * 嵌入字段名字
-     *
-     * @return 返回要嵌入的字段名字
-     */
-    String nested() default "";
-
-    /**
      * 获取数据库名字
      *
      * @return 返回一个数据库的名字

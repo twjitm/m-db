@@ -1,6 +1,7 @@
 package com.mdb.test.entity;
 
 import com.mdb.entity.AbstractNestedMongoPo;
+import com.mdb.entity.NestedMongoPo;
 import com.mdb.enums.*;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
@@ -73,5 +74,16 @@ public class UserInfoPo extends AbstractNestedMongoPo {
                 ", job='" + job + '\'' +
                 ", jobType=" + jobType +
                 '}';
+    }
+
+
+    @Override
+    public Class<? extends NestedMongoPo> rooterPath() {
+        return null;
+    }
+
+    @Override
+    public String nestedTable() {
+        return "info";
     }
 }

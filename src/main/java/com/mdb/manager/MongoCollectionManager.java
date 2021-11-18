@@ -83,8 +83,7 @@ public class MongoCollectionManager {
     }
 
     public <T extends MongoPo> MongoCollection<Document> getCollection(T t) {
-        MongoDocument document = t.getClass().getAnnotation(MongoDocument.class);
-        return this.getCollection(document.database(), document.collection());
+        return this.getCollection(t.database(), t.collection());
     }
 
     public <T extends MongoPo> MongoCollection<Document> getCollection(Class<T> clazz) {

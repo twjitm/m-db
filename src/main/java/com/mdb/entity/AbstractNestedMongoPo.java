@@ -1,8 +1,8 @@
 package com.mdb.entity;
 
-import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 import com.mdb.utils.ZStringUtils;
+import com.mongodb.client.model.IndexModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -14,24 +14,23 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
     @Override
     public Document saveDocument() {
         Document document = super.document();
-        if (this.rooter().isAssignableFrom(NestedMongoPo.class)) {
+        String table = nestedTable();
+        if (this.rooterPath() == null){
             System.out.println("嵌入式文档");
+            if (ZStringUtils.isEmpty(table)) {
+                table = "info";
+            }
         }
         Document root = new Document();
+        root.put(table, document);
         List<MongoId> ids = this.mongoIds();
         ids.forEach(item -> root.put(item.name(), data().get(item.name())));
-        String table = nestedTable();
-        if (ZStringUtils.isEmpty(table)) {
-            table = "info";
-        }
-        root.put(table, document);
         return root;
     }
 
     @Override
-    public Class<NestedMongoPo> rooter() {
-        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
-        return (Class<NestedMongoPo>) document.rooter();
+    public List<IndexModel> getIndex() {
+        return null;
     }
 
     @Override
@@ -44,10 +43,4 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         return super.collection();
     }
 
-
-    @Override
-    public String nestedTable() {
-        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
-        return document.nested();
-    }
 }

@@ -21,7 +21,7 @@ public @interface MongoNestedDocument {
      *
      * @return 返回要嵌入的字段名字
      */
-    String nested() default "";
+    String nested();
 
     /**
      * 获取数据库名字

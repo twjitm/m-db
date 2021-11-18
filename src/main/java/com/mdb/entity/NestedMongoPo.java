@@ -7,9 +7,9 @@ import org.bson.conversions.Bson;
  */
 public interface NestedMongoPo extends MongoPo {
 
-    public Class<NestedMongoPo> rooter();
+    Class<? extends NestedMongoPo> rooterPath();
 
-    public String nestedTable();
+    String nestedTable();
 
-    public Bson rootFilter();
+    Bson rootFilter();
 }
