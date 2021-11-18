@@ -2,6 +2,7 @@ package com.mdb.utils;
 
 import com.google.common.base.CaseFormat;
 import com.mdb.entity.PrimaryKey;
+import com.mdb.exception.MException;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 
@@ -140,11 +141,19 @@ public class ZClassUtils {
         return t;
     }
 
-    public static <T> void setField(T t, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+    public static <T> void setField(T t, String fieldName, Object value) throws MException {
         String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName);
-        Field field = t.getClass().getDeclaredField(name);
-        field.setAccessible(true);
-        field.set(t, value);
+        Field field;
+        try {
+            field = t.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            field.set(t, value);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            System.out.println("[set field error]");
+            throw new MException("set field error,class is " + t.getClass().getName() + "|field name is " + fieldName);
+        }
+
     }
 
     public static <T> String getPackageNameBy(Class<T> clazz, String replace) {

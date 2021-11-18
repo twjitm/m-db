@@ -12,15 +12,14 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
 
 
     @Override
+    public Document document() {
+        return super.document();
+    }
+
+    @Override
     public Document saveDocument() {
-        Document document = super.document();
+        Document document = this.document();
         String table = nestedTable();
-        if (this.rooterPath() == null){
-            System.out.println("嵌入式文档");
-            if (ZStringUtils.isEmpty(table)) {
-                table = "info";
-            }
-        }
         Document root = new Document();
         root.put(table, document);
         List<MongoId> ids = this.mongoIds();

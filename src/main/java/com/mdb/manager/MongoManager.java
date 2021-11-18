@@ -118,22 +118,18 @@ public class MongoManager {
         }
         Class<? extends MongoPo> clazz = t.getClass();
         MongoCollection<Document> db = mongoCollectionManager.getCollection(t);
-        Document document = t.saveDocument();
+
         String tickName = t.tick();
         if (!ZStringUtils.isEmpty(tickName)) {
             long id = this.nextId(clazz);
-            document.put(tickName, this.nextId(clazz));
-            try {
-                ZClassUtils.setField(t, tickName, id);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-                throw new MException("tick id filed");
-            }
+            ZClassUtils.setField(t, tickName, id);
         }
+        Document saveDocument = t.saveDocument();
+        saveDocument.put(tickName, this.nextId(clazz));
         if (async) {
-            return mongoSyncManager.put(MongoTask.builder(t.database(), t.collection(), new InsertOneModel<>(document)));
+            return mongoSyncManager.put(MongoTask.builder(t.database(), t.collection(), new InsertOneModel<>(saveDocument)));
         }
-        db.insertOne(document);
+        db.insertOne(saveDocument);
         return true;
     }
 
@@ -145,18 +141,12 @@ public class MongoManager {
         Class<? extends MongoPo> clazz = t.getClass();
         MongoDocument mongoDocument = clazz.getAnnotation(MongoDocument.class);
         for (T item : list) {
-            Document document = item.document();
             String tickName = t.tick();
             if (!ZStringUtils.isEmpty(tickName)) {
                 long id = this.nextId(clazz);
-                document.put(tickName, id);
-                try {
-                    ZClassUtils.setField(t, tickName, id);
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    throw new MException("tick id field");
-                }
+                ZClassUtils.setField(t, tickName, id);
             }
+            Document document = item.document();
             if (async) {
                 mongoSyncManager.put(MongoTask.builder(item.database(), item.collection(), new InsertOneModel<>(document)));
             } else {
