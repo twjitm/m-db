@@ -1,5 +1,7 @@
 package com.mdb.utils;
 
+import java.util.Objects;
+
 public class ZStringUtils {
     /**
      * 判断字符串是否为空
@@ -11,5 +13,9 @@ public class ZStringUtils {
             return true;
         }
         return false;
+    }
+
+    public static boolean eq(String a, String b) {
+        return Objects.equals(a, b);
     }
 }

@@ -6,6 +6,7 @@ import com.mdb.entity.PrimaryKey;
 import com.mdb.entity.TickId;
 import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
+import com.mdb.test.entity.AddressPo;
 import com.mdb.test.entity.BuildPo;
 import com.mdb.test.entity.UserInfoPo;
 
@@ -22,10 +23,11 @@ public class Test {
         //MongoManager.getInstance().load("127.0.0.1:27017");
         init();
         //createIndex();
-        add();
+        //add();
+        AddAddress();
         //  addMany();
         //addManyBuild();
-       // get();
+        // get();
         //findAll();
         //count();
         //update();
@@ -41,6 +43,15 @@ public class Test {
 //        }
 
         // getAll();
+    }
+
+    public static void AddAddress() throws MException {
+        for (int i = 1; i < 3; i++) {
+            AddressPo addressPo = new AddressPo();
+            addressPo.setAddress("beijing" + i);
+            addressPo.setUid(1);
+            MongoManager.getInstance().add(addressPo);
+        }
     }
 
     private static void addManyBuild() throws MException {
@@ -63,11 +74,13 @@ public class Test {
 
     public static void createIndex() {
         MongoManager.getInstance().createIndex(UserInfoPo.class);
+        // MongoManager.getInstance().createIndex(BuildPo.class);
+        MongoManager.getInstance().createIndex(AddressPo.class);
     }
 
     public static void add() throws MException {
 
-        for (int i = 1; i < 10; i++) {
+        for (int i = 1; i < 3; i++) {
             UserInfoPo user = new UserInfoPo();
             user.setAge((byte) 26);
             user.setName("twj_" + i);

@@ -85,7 +85,7 @@ public interface MongoPo {
      *
      * @return mongodb 中的表名称
      */
-    String collection();
+    String table();
 
 
 }

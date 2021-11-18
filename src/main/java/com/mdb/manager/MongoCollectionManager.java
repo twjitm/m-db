@@ -2,6 +2,7 @@ package com.mdb.manager;
 
 import com.mdb.entity.MongoPo;
 import com.mdb.enums.MongoDocument;
+import com.mdb.utils.ZClassUtils;
 import com.mongodb.DBObjectCodecProvider;
 import com.mongodb.DBRefCodecProvider;
 import com.mongodb.DocumentToDBRefTransformer;
@@ -78,17 +79,13 @@ public class MongoCollectionManager {
         return db;
     }
 
-    public MongoCollection<Document> getCollection(MongoDocument document) {
-        return this.getCollection(document.database(), document.collection());
-    }
-
     public <T extends MongoPo> MongoCollection<Document> getCollection(T t) {
-        return this.getCollection(t.database(), t.collection());
+        return this.getCollection(t.database(), t.table());
     }
 
     public <T extends MongoPo> MongoCollection<Document> getCollection(Class<T> clazz) {
-        MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        return this.getCollection(document.database(), document.collection());
+        T empty = ZClassUtils.create(clazz);
+        return this.getCollection(empty.database(), empty.table());
     }
 
     public String getDbKey(String database, String collection) {

@@ -5,7 +5,7 @@ import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 import com.mdb.enums.index.Indexed;
 
-@MongoDocument(collection = "mdb_tick")
+@MongoDocument(table = "mdb_tick")
 public class TickId extends AbstractMongoPo {
 
     @Indexed(unique = true, name = "key")

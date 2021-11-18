@@ -125,9 +125,8 @@ public class MongoManager {
             ZClassUtils.setField(t, tickName, id);
         }
         Document saveDocument = t.saveDocument();
-        saveDocument.put(tickName, this.nextId(clazz));
         if (async) {
-            return mongoSyncManager.put(MongoTask.builder(t.database(), t.collection(), new InsertOneModel<>(saveDocument)));
+            return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new InsertOneModel<>(saveDocument)));
         }
         db.insertOne(saveDocument);
         return true;
@@ -139,7 +138,6 @@ public class MongoManager {
         List<InsertOneModel<Document>> ins = new ArrayList<>();
         T t = list.get(0);
         Class<? extends MongoPo> clazz = t.getClass();
-        MongoDocument mongoDocument = clazz.getAnnotation(MongoDocument.class);
         for (T item : list) {
             String tickName = t.tick();
             if (!ZStringUtils.isEmpty(tickName)) {
@@ -148,13 +146,13 @@ public class MongoManager {
             }
             Document document = item.document();
             if (async) {
-                mongoSyncManager.put(MongoTask.builder(item.database(), item.collection(), new InsertOneModel<>(document)));
+                mongoSyncManager.put(MongoTask.builder(item.database(), item.table(), new InsertOneModel<>(document)));
             } else {
                 ins.add(new InsertOneModel<>(document));
             }
         }
         if (!ZCollectionUtil.isEmpty(ins) && !async) {
-            mongoCollectionManager.getCollection(mongoDocument).bulkWrite(ins, op);
+            mongoCollectionManager.getCollection(clazz).bulkWrite(ins, op);
         }
         return true;
     }
@@ -170,7 +168,7 @@ public class MongoManager {
         Document up = new Document();
         up.put("$set", modify);
         if (async) {
-            return mongoSyncManager.put(MongoTask.builder(t.database(), t.collection(), new UpdateOneModel<>(t.filters(), up)));
+            return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new UpdateOneModel<>(t.filters(), up)));
         }
         UpdateResult result = mongoCollectionManager.getCollection(t).updateOne(t.filters(), up);
         return result.wasAcknowledged();
@@ -187,7 +185,7 @@ public class MongoManager {
                 Document modify = item.modify();
                 if (!ZCollectionUtil.isEmpty(modify)) {
                     if (async) {
-                        mongoSyncManager.put(MongoTask.builder(item.database(), item.collection(), new UpdateOneModel<>(item.filters(),
+                        mongoSyncManager.put(MongoTask.builder(item.database(), item.table(), new UpdateOneModel<>(item.filters(),
                                 new Document("$set", modify))));
                     } else {
                         ups.add(new UpdateOneModel<>(item.filters(), new Document("$set", modify)));
@@ -210,7 +208,7 @@ public class MongoManager {
             return false;
         }
         if (async) {
-            return mongoSyncManager.put(MongoTask.builder(t.database(), t.collection(), new DeleteOneModel<>(t.filters())));
+            return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new DeleteOneModel<>(t.filters())));
         }
         MongoCollection<Document> collection = mongoCollectionManager.getCollection(t);
         DeleteResult result = collection.deleteOne(t.filters());
@@ -233,8 +231,7 @@ public class MongoManager {
             throw new MException("[error][mdb][conduction is empty]");
         }
         Bson filter = parseFilters(keys);
-        MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        T t = mongoCollectionManager.getCollection(document).find(filter, clazz).first();
+        T t = mongoCollectionManager.getCollection(clazz).find(filter, clazz).first();
         if (t != null) {
             t.document();
         }
@@ -261,8 +258,7 @@ public class MongoManager {
             filters.add(filter);
         }
         Bson filter = Filters.and(filters);
-        MongoDocument document = clazz.getAnnotation(MongoDocument.class);
-        MongoCollection<Document> db = mongoCollectionManager.getCollection(document);
+        MongoCollection<Document> db = mongoCollectionManager.getCollection(clazz);
 
         MongoCursor<T> items = db.find(filter, clazz).iterator();
         List<T> result = new ArrayList<>();

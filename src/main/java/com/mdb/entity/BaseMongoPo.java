@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class BaseMongoPo implements MongoPo {
+public abstract class BaseMongoPo implements MongoPo {
 
     private final Document document = new Document();
 
@@ -35,10 +35,6 @@ public class BaseMongoPo implements MongoPo {
         return document;
     }
 
-    @Override
-    public Document saveDocument() {
-        return null;
-    }
 
     @Override
     public List<IndexModel> getIndex() {
@@ -128,9 +124,9 @@ public class BaseMongoPo implements MongoPo {
 
 
     @Override
-    public String collection() {
+    public String table() {
         MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
-        return document.collection();
+        return document.table();
     }
 
     @Override

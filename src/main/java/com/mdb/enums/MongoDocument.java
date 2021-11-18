@@ -1,6 +1,7 @@
 package com.mdb.enums;
 
-import com.mdb.entity.NestedMongoPo;
+import com.mdb.entity.AbstractNestedMongoPo;
+import com.mdb.entity.MongoPo;
 
 import java.lang.annotation.*;
 
@@ -11,6 +12,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface MongoDocument {
+
+    Class<?> rooter() default AbstractNestedMongoPo.class;
 
     /**
      * 获取数据库名字
@@ -24,6 +27,13 @@ public @interface MongoDocument {
      *
      * @return 返回数据库中一个简单的文档的文档名字
      */
-    String collection();
+    String table();
+
+    /**
+     * 内嵌文档名字
+     *
+     * @return 返回一个内嵌文档中的列名
+     */
+    String nested()default "";
 
 }

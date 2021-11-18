@@ -1,14 +1,13 @@
 package com.mdb.test.entity;
 
 import com.mdb.entity.AbstractNestedMongoPo;
-import com.mdb.entity.NestedMongoPo;
 import com.mdb.enums.*;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "name")})
-@MongoDocument(database = "mdb", collection = "user_info")
+@MongoDocument(database = "mdb", table = "user_info", nested = "info")
 public class UserInfoPo extends AbstractNestedMongoPo {
 
     @Indexed(name = "uid", unique = true)
@@ -76,14 +75,4 @@ public class UserInfoPo extends AbstractNestedMongoPo {
                 '}';
     }
 
-
-    @Override
-    public Class<? extends NestedMongoPo> rooterPath() {
-        return null;
-    }
-
-    @Override
-    public String nestedTable() {
-        return "info";
-    }
 }

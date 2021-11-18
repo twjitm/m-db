@@ -47,7 +47,7 @@ public class MongoTask<T> {
 
     public static <T> MongoTask<T> builder(MongoDocument document, WriteModel<T> model) {
         MongoTask<T> task = new MongoTask<T>();
-        task.setKey(document.database() + ":" + document.collection());
+        task.setKey(document.database() + ":" + document.table());
         task.setModel(model);
         return task;
     }
@@ -55,7 +55,7 @@ public class MongoTask<T> {
     public static <T, E extends MongoPo> MongoTask<T> builder(Class<E> clazz, WriteModel<T> model) {
         MongoDocument document = clazz.getAnnotation(MongoDocument.class);
         MongoTask<T> task = new MongoTask<T>();
-        task.setKey(document.database() + ":" + document.collection());
+        task.setKey(document.database() + ":" + document.table());
         task.setModel(model);
         return  task;
     }
