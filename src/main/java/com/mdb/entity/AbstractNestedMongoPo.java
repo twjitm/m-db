@@ -25,9 +25,19 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         String nested = nested();
         Document root = new Document();
         Document nest = new Document();
-        nest.put(nested, document);
-        root.put("$set", nest);
-        return root;
+        List<MongoId> ids = this.mongoIds();
+        if (!this.isBase()) {
+            MongoId id = ids.get(0);
+            String idv = data().get(id.name()).toString();
+           // Document doc = new Document(idv, document);
+            nest.put(nested + "." + idv, document);
+            root.put("$set", nest);
+            return root;
+        } else {
+            nest.put(nested, document);
+            root.put("$set", nest);
+            return root;
+        }
     }
 
     @Override
@@ -90,34 +100,41 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         Class<T> root = (Class<T>) document.rooter();
         Map<String, ?> data = data();
         List<MongoId> ids = this.mongoIds();
-        if (root.isAssignableFrom(AbstractNestedMongoPo.class)) {
-            return builder(ids, data);
+        if (!root.isAssignableFrom(AbstractNestedMongoPo.class)) {
+            List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
+            Bson rootFilter = builderFilter(rootIds, data);
+            Bson nested = Filters.exists(nestedPath(ids.get(0)), false);
+            return Filters.and(makeMongoId(rootIds, data), rootFilter, nested);
         }
-        List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
-        return builder(rootIds, data);
+        return Filters.and(makeMongoId(ids, data), builderFilter(ids, data));
     }
 
-    private Bson builder(List<MongoId> ids, Map<String, ?> data) {
-        Bson[] as = new Bson[ids.size() + 1];
-        String and = "";
+
+    public Bson makeMongoId(List<MongoId> ids, Map<String, ?> data) {
+        String val = "";
+        for (int i = 0; i < ids.size(); i++) {
+            MongoId id = ids.get(i);
+            val = "_" + data.get(id.name()).toString();
+        }
+        return Filters.eq("_id", val.substring(1));
+    }
+
+    private Bson builderFilter(List<MongoId> ids, Map<String, ?> data) {
+        Bson[] as = new Bson[ids.size()];
         for (int i = 0; i < ids.size(); i++) {
             MongoId id = ids.get(i);
             Object val = data.get(id.name());
             as[i] = Filters.eq(id.name(), val);
-            and = id.name() + "=" + val.toString();
         }
-        if (isBase()) {
-            return Filters.and(as);
-        }
-        as[as.length - 1] = Filters.exists(nestPath() + and, false);
         return Filters.and(as);
     }
 
-    public String nestPath() {
+    public String nestedPath(MongoId id) {
         if (isBase()) {
             return "";
         }
-        return nested() + ".";
+        String and = id.name() + "=" + data().get(id.name());
+        return nested() + "." + and;
     }
 
     public boolean isBase() {

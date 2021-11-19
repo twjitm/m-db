@@ -3,16 +3,13 @@ package com.mdb.test.entity;
 import com.mdb.entity.AbstractNestedMongoPo;
 import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
-import com.mdb.enums.index.Indexed;
 
 /**
  * 把addressPo这个对象嵌入到user这个对象中
  */
 @MongoDocument(database = "mdb", table = "address", nested = "address", rooter = UserInfoPo.class)
 public class AddressPo extends AbstractNestedMongoPo {
-    @Indexed(name = "uid")
     private long uid;
-    @Indexed(name = "aid")
     @MongoId(name = "aid", tick = true, order = 0)
     private long aid;
     private String address;

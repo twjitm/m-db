@@ -50,7 +50,7 @@ public class Test {
         for (int i = 1; i < 3; i++) {
             AddressPo addressPo = new AddressPo();
             addressPo.setAddress("beijing" + i);
-            addressPo.setUid(10);
+            addressPo.setUid(1);
             MongoManager.getInstance().add(addressPo);
         }
     }
