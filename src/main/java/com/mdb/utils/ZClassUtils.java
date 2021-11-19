@@ -202,7 +202,12 @@ public class ZClassUtils {
 
 
     private static Field[] getAllFields(Object obj) {
-        Class<?> clazz = obj.getClass();
+        Class<?> clazz;
+        if (obj instanceof Class) {
+            clazz = (Class<?>) obj;
+        } else {
+            clazz = obj.getClass();
+        }
 
         Field[] rt;
         for (rt = null; clazz != Object.class; clazz = clazz.getSuperclass()) {

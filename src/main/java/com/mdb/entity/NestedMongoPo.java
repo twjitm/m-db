@@ -9,7 +9,7 @@ public interface NestedMongoPo extends MongoPo {
 
     String rooter();
 
-    Bson rootFilter();
+    <T extends NestedMongoPo> Bson rootFilter();
 
     String nested();
 

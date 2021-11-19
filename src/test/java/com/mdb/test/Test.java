@@ -23,9 +23,9 @@ public class Test {
         //MongoManager.getInstance().load("127.0.0.1:27017");
         init();
         //createIndex();
-        add();
+        //add();
 
-        //AddAddress();
+        AddAddress();
         //  addMany();
         //addManyBuild();
         // get();
@@ -50,7 +50,7 @@ public class Test {
         for (int i = 1; i < 3; i++) {
             AddressPo addressPo = new AddressPo();
             addressPo.setAddress("beijing" + i);
-            addressPo.setUid(1);
+            addressPo.setUid(10);
             MongoManager.getInstance().add(addressPo);
         }
     }

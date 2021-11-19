@@ -27,9 +27,6 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         Document nest = new Document();
         nest.put(nested, document);
         root.put("$set", nest);
-       // List<MongoId> ids = this.mongoIds();
-        //fixme 这个地方有问题
-        //ids.forEach(item -> root.put(item.name(), document.get(item.name())));
         return root;
     }
 
@@ -68,8 +65,7 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
     public boolean isRootKey(String name) {
         List<MongoId> mongoIds = this.mongoIds();
         for (MongoId id : mongoIds) {
-            if (ZStringUtils.eq(id.name(), name)
-                    && ZStringUtils.eq("", rooter())) {
+            if (ZStringUtils.eq(id.name(), name) && ZStringUtils.eq("", rooter())) {
                 return true;
             }
         }
@@ -88,13 +84,13 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
     }
 
     @Override
-    public Bson rootFilter() {
+    public <T extends NestedMongoPo> Bson rootFilter() {
 
         MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
-        Class<?> root = document.rooter();
+        Class<T> root = (Class<T>) document.rooter();
         Map<String, ?> data = data();
+        List<MongoId> ids = this.mongoIds();
         if (root.isAssignableFrom(AbstractNestedMongoPo.class)) {
-            List<MongoId> ids = this.mongoIds();
             return builder(ids, data);
         }
         List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
@@ -103,11 +99,30 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
 
     private Bson builder(List<MongoId> ids, Map<String, ?> data) {
         Bson[] as = new Bson[ids.size() + 1];
+        String and = "";
         for (int i = 0; i < ids.size(); i++) {
-            as[i] = Filters.eq(ids.get(i).name(), data.get(ids.get(i).name()));
+            MongoId id = ids.get(i);
+            Object val = data.get(id.name());
+            as[i] = Filters.eq(id.name(), val);
+            and = id.name() + "=" + val.toString();
         }
-        as[as.length - 1] = Filters.exists(nested(), false);
+        if (isBase()) {
+            return Filters.and(as);
+        }
+        as[as.length - 1] = Filters.exists(nestPath() + and, false);
         return Filters.and(as);
+    }
+
+    public String nestPath() {
+        if (isBase()) {
+            return "";
+        }
+        return nested() + ".";
+    }
+
+    public boolean isBase() {
+        String root = rooter();
+        return ZStringUtils.isEmpty(root);
     }
 
     @Override
@@ -117,6 +132,10 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
             return root;
         }
         return super.table();
+    }
+
+    String nestedPath() {
+        return "";
     }
 
     @Override
