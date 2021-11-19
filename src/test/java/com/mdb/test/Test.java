@@ -23,8 +23,9 @@ public class Test {
         //MongoManager.getInstance().load("127.0.0.1:27017");
         init();
         //createIndex();
-        //add();
-        AddAddress();
+        add();
+
+        //AddAddress();
         //  addMany();
         //addManyBuild();
         // get();

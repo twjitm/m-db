@@ -6,6 +6,7 @@ import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZStringUtils;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -14,6 +15,7 @@ import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractNestedMongoPo extends BaseMongoPo implements NestedMongoPo {
 
@@ -22,10 +24,12 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         Document document = this.document();
         String nested = nested();
         Document root = new Document();
-        root.put(nested, document);
-        List<MongoId> ids = this.mongoIds();
+        Document nest = new Document();
+        nest.put(nested, document);
+        root.put("$set", nest);
+       // List<MongoId> ids = this.mongoIds();
         //fixme 这个地方有问题
-        ids.forEach(item -> root.put(item.name(), data().get(item.name())));
+        //ids.forEach(item -> root.put(item.name(), document.get(item.name())));
         return root;
     }
 
@@ -85,7 +89,25 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
 
     @Override
     public Bson rootFilter() {
-        return null;
+
+        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
+        Class<?> root = document.rooter();
+        Map<String, ?> data = data();
+        if (root.isAssignableFrom(AbstractNestedMongoPo.class)) {
+            List<MongoId> ids = this.mongoIds();
+            return builder(ids, data);
+        }
+        List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
+        return builder(rootIds, data);
+    }
+
+    private Bson builder(List<MongoId> ids, Map<String, ?> data) {
+        Bson[] as = new Bson[ids.size() + 1];
+        for (int i = 0; i < ids.size(); i++) {
+            as[i] = Filters.eq(ids.get(i).name(), data.get(ids.get(i).name()));
+        }
+        as[as.length - 1] = Filters.exists(nested(), false);
+        return Filters.and(as);
     }
 
     @Override

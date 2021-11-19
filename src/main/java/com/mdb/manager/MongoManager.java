@@ -1,10 +1,7 @@
 package com.mdb.manager;
 
 import com.mdb.base.query.QueryOptions;
-import com.mdb.entity.MongoPo;
-import com.mdb.entity.MongoTask;
-import com.mdb.entity.PrimaryKey;
-import com.mdb.entity.TickId;
+import com.mdb.entity.*;
 import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
@@ -123,6 +120,17 @@ public class MongoManager {
         if (!ZStringUtils.isEmpty(tickName)) {
             long id = this.nextId(clazz);
             ZClassUtils.setField(t, tickName, id);
+        }
+        if (t instanceof AbstractNestedMongoPo) {
+            Document saveDocument = t.saveDocument();
+            Bson filter = ((AbstractNestedMongoPo) t).rootFilter();
+            UpdateOptions ops = new UpdateOptions();
+            ops.upsert(true);
+            if (async) {
+                return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new UpdateOneModel<>(filter, saveDocument, ops)));
+            }
+            db.updateOne(filter, saveDocument, ops);
+            return true;
         }
         Document saveDocument = t.saveDocument();
         if (async) {
