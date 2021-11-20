@@ -38,4 +38,13 @@ public class AddressPo extends AbstractNestedMongoPo {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    @Override
+    public String toString() {
+        return "AddressPo{" +
+                "uid=" + uid +
+                ", aid=" + aid +
+                ", address='" + address + '\'' +
+                '}';
+    }
 }

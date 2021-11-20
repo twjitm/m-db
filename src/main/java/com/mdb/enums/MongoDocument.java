@@ -35,6 +35,6 @@ public @interface MongoDocument {
      *
      * @return 返回一个内嵌文档中的列名
      */
-    String nested()default "";
+    String nested() default "";
 
 }

@@ -43,7 +43,7 @@ public abstract class BaseMongoPo implements MongoPo {
         indexedList.forEach(item ->
                 ids.add(new IndexModel(item.order() == 1 ? Indexes.ascending(item.name()) : Indexes.descending(item.name()),
                         new IndexOptions().unique(item.unique()))));
-        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this, CompoundIndexed.class);
+        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this.getClass(), CompoundIndexed.class);
         if (compoundIndex != null) {
             Indexed[] array = compoundIndex.value();
             int order = compoundIndex.order();

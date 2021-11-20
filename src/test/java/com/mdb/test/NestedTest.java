@@ -78,8 +78,12 @@ public class NestedTest {
 
 
     public static void get() throws MException {
-        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1),PrimaryKey.builder("aid",3));
-        System.out.println(address.getAddress());
+       // UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
+       // System.out.println(userInfoPo.toString());
+        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("aid", 11));
+
+        System.out.println(address);
+
     }
 
 

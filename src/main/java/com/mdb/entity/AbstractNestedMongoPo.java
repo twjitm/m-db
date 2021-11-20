@@ -53,7 +53,7 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
                     ids.add(index);
                 }
         );
-        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this, CompoundIndexed.class);
+        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this.getClass(), CompoundIndexed.class);
         if (compoundIndex != null) {
             Indexed[] array = compoundIndex.value();
             int order = compoundIndex.order();
@@ -98,7 +98,7 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         Class<T> root = (Class<T>) document.rooter();
         Map<String, ?> data = data();
         List<MongoId> ids = this.mongoIds();
-        if (!root.isAssignableFrom(AbstractNestedMongoPo.class)) {
+        if (!AbstractNestedMongoPo.class.isAssignableFrom(root)) {
             List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
             Bson rootFilter = builderFilter(rootIds, data);
             Bson nested = Filters.exists(nestedPath(ids.get(0)), false);

@@ -1,8 +1,10 @@
 package com.mdb.manager;
 
+import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.*;
 import com.mdb.exception.MException;
+import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
 import com.mdb.utils.ZStringUtils;
@@ -15,10 +17,18 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.apache.commons.lang3.ClassUtils;
 import org.bson.Document;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 
 import java.util.*;
 
+
+import static com.mongodb.client.model.Accumulators.push;
+import static com.mongodb.client.model.Accumulators.sum;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Projections.*;
+import static com.mongodb.client.model.Sorts.descending;
 
 public class MongoManager {
 
@@ -224,7 +234,7 @@ public class MongoManager {
 
     public <T extends MongoPo> boolean delete(Class<T> clazz, PrimaryKey... keys) {
         MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
-        Bson filter = parseFilters(clazz,keys);
+        Bson filter = parseFilters(keys);
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(clazz, new DeleteOneModel<>(filter)));
         }
@@ -237,7 +247,19 @@ public class MongoManager {
         if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
-        Bson filter = parseFilters(clazz, keys);
+        if (MongoHelper.isNested(clazz)) {
+            String nested = MongoHelper.nested(clazz);
+            Bson[] filters = MongoHelper.split(clazz, keys);
+            MongoIterable<Document> result = this.find(clazz, nested, filters[0], filters[1]);
+            Document document = result.first();
+            if (document == null) {
+                return null;
+            }
+            Document newRoot = document.get("newRoot", Document.class);
+            return MongoHelper.create(clazz, newRoot);
+        }
+
+        Bson filter = parseFilters(keys);
         T t = mongoCollectionManager.getCollection(clazz).find(filter, clazz).first();
         if (t != null) {
             t.document();
@@ -245,26 +267,11 @@ public class MongoManager {
         return t;
     }
 
-    private <T extends MongoPo> Bson parseFilters(Class<T> clazz, PrimaryKey[] keys) {
-        if (clazz.isAssignableFrom(AbstractMongoPo.class)) {
-            List<Bson> filters = new ArrayList<>();
-            for (PrimaryKey key : keys) {
-                Bson filter = Filters.eq(key.getName(), key.getValue());
-                filters.add(filter);
-            }
-            return Filters.and(filters);
-        }
-
+    private <T extends MongoPo> Bson parseFilters(PrimaryKey[] keys) {
         List<Bson> filters = new ArrayList<>();
         for (PrimaryKey key : keys) {
-            if (key.getName().equals("uid")) {
-                Bson filter = Filters.eq(key.getName(), key.getValue());
-                filters.add(filter);
-            } else {
-                Bson filter = Filters.eq("address." + key.getName(), key.getValue());
-                filters.add(filter);
-            }
-
+            Bson filter = Filters.eq(key.getName(), key.getValue());
+            filters.add(filter);
         }
         return Filters.and(filters);
     }
@@ -364,6 +371,81 @@ public class MongoManager {
         return null;
     }
 
+    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> find(Class<E> clazz, String nestedName, Bson rootFilter, Bson nestedFilter) {
+
+        boolean isBase = MongoHelper.isNestedBase(clazz);
+        List<Bson> pipeline = new ArrayList<>();
+        if (rootFilter != null) {
+            Bson rootMatch = Aggregates.match(rootFilter);
+            pipeline.add(rootMatch);
+        }
+        if (nestedFilter != null) {
+            pipeline.add(nestedFilter);
+        }
+
+        if (!isBase) {
+//            Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
+//            Bson input = Filters.eq("input", objectToArray);
+//            Bson in = Filters.eq("in", Filters.and(Filters.eq("k", "$$this.k"), Filters.eq(nestedName, "$$this.v")));
+//            Bson map = Filters.and(input, in);
+//            Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
+//            pipeline.add(Aggregates.project(project));
+            pipeline.add(Aggregates.unwind("$" + nestedName));
+        }
+        Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot", "$" + nestedName));
+        pipeline.add(replaceRoot);
+        return mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
+    }
+
+
+    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> findTest(Class<E> clazz) throws InstantiationException, IllegalAccessException {
+
+        String nestedName = "address";
+        Bson rootFilter = Filters.eq("uid", 1);
+//        Bson nestedFilter = Filters.eq("aid", 11);
+//        Bson nextedMatch = Aggregates.match(nestedFilter);
+
+        boolean isBase = MongoHelper.isNestedBase(clazz);
+        List<Bson> pipeline = new ArrayList<>();
+        Bson rootMatch = Aggregates.match(rootFilter);
+        pipeline.add(rootMatch);
+        Bson nestedProject = Aggregates.project((eq(nestedName, "$" + nestedName + "." + 11)));
+        pipeline.add(nestedProject);
+        if (!isBase) {
+//            Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
+//            Bson input = Filters.eq("input", objectToArray);
+//            Bson in = Filters.eq("in", "$$this.v");
+//            Bson map = Filters.and(input, in);
+//            Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
+//            pipeline.add(Aggregates.project(project));
+            pipeline.add(Aggregates.unwind("$" + nestedName));
+
+        }
+        Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot", "$" + nestedName));
+        E t = clazz.newInstance();
+        // Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot",Filters.in("$ifNull", "$" + nestedName,"")));
+        pipeline.add(replaceRoot);
+        AggregateIterable<Document> result = mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
+
+        Document doc = result.first();
+
+        System.out.println(doc);
+
+        return null;
+    }
+
+
+    /**
+     * Stage
+     * {name='$project', value=
+     * Filter{fieldName='address',value=
+     * Filter{fieldName='$map', value=
+     * And Filter{filters=[Filter{fieldName='input', value=
+     * Filter{fieldName='$objectToArray', value=$address}}, Filter{fieldName='in', value=$$this.v}]}}}}
+     *
+     * @param <T>
+     * @return
+     */
     private <T extends MongoPo> List<T> find() {
         return null;
     }

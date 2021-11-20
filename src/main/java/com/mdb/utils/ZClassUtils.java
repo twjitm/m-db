@@ -333,7 +333,7 @@ public class ZClassUtils {
     }
 
 
-    public static <T extends Annotation, E> T getClassAnnotations(E obj, Class<T> clazz) {
-        return obj.getClass().getAnnotation(clazz);
+    public static <T extends Annotation, E> T getClassAnnotations(Class<E> obj, Class<T> clazz) {
+        return obj.getAnnotation(clazz);
     }
 }
