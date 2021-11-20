@@ -7,6 +7,8 @@ abstract public class AbstractMongoPo extends BaseMongoPo {
 
     @Override
     public Document saveDocument() {
-        return this.document();
+        Document document = this.document();
+        document.put("_id", makeMongoId(mongoIds()));
+        return document;
     }
 }

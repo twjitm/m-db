@@ -37,7 +37,7 @@ public abstract class BaseMongoPo implements MongoPo {
 
 
     @Override
-    public List<IndexModel> getIndex() {
+    public List<IndexModel> index() {
         List<IndexModel> ids = new ArrayList<>();
         List<Indexed> indexedList = ZClassUtils.getFieldAnnotations(this, Indexed.class);
         indexedList.forEach(item ->
@@ -132,5 +132,15 @@ public abstract class BaseMongoPo implements MongoPo {
     @Override
     public String toJsonString() {
         return this.document().toJson();
+    }
+
+    @Override
+    public Object makeMongoId(List<MongoId> ids) {
+        Map<String, ?> data = data();
+        StringBuilder val = new StringBuilder();
+        for (MongoId id : ids) {
+            val.append("_").append(data.get(id.name()).toString());
+        }
+        return val.substring(1);
     }
 }

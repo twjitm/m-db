@@ -7,6 +7,9 @@ import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
+/**
+ * 一个简单文档
+ */
 @MongoDocument(table = "user_build")
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "build_id")})
 public class BuildPo extends AbstractMongoPo {

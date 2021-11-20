@@ -2,7 +2,6 @@ package com.mdb.manager;
 
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.*;
-import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
@@ -14,6 +13,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import org.apache.commons.lang3.ClassUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -95,7 +95,7 @@ public class MongoManager {
         try {
             MongoPo v = clazz.newInstance();
             MongoCollection<Document> db = mongoCollectionManager.getCollection(clazz);
-            List<IndexModel> list = v.getIndex();
+            List<IndexModel> list = v.index();
             if (ZCollectionUtil.isEmpty(list)) {
                 return;
             }
@@ -121,8 +121,8 @@ public class MongoManager {
             long id = this.nextId(clazz);
             ZClassUtils.setField(t, tickName, id);
         }
+        Document saveDocument = t.saveDocument();
         if (t instanceof AbstractNestedMongoPo) {
-            Document saveDocument = t.saveDocument();
             Bson filter = ((AbstractNestedMongoPo) t).rootFilter();
             UpdateOptions ops = new UpdateOptions();
             ops.upsert(true);
@@ -132,7 +132,6 @@ public class MongoManager {
             db.updateOne(filter, saveDocument, ops);
             return true;
         }
-        Document saveDocument = t.saveDocument();
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new InsertOneModel<>(saveDocument)));
         }
@@ -225,7 +224,7 @@ public class MongoManager {
 
     public <T extends MongoPo> boolean delete(Class<T> clazz, PrimaryKey... keys) {
         MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
-        Bson filter = parseFilters(keys);
+        Bson filter = parseFilters(clazz,keys);
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(clazz, new DeleteOneModel<>(filter)));
         }
@@ -238,7 +237,7 @@ public class MongoManager {
         if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
-        Bson filter = parseFilters(keys);
+        Bson filter = parseFilters(clazz, keys);
         T t = mongoCollectionManager.getCollection(clazz).find(filter, clazz).first();
         if (t != null) {
             t.document();
@@ -246,17 +245,31 @@ public class MongoManager {
         return t;
     }
 
-    private Bson parseFilters(PrimaryKey[] keys) {
+    private <T extends MongoPo> Bson parseFilters(Class<T> clazz, PrimaryKey[] keys) {
+        if (clazz.isAssignableFrom(AbstractMongoPo.class)) {
+            List<Bson> filters = new ArrayList<>();
+            for (PrimaryKey key : keys) {
+                Bson filter = Filters.eq(key.getName(), key.getValue());
+                filters.add(filter);
+            }
+            return Filters.and(filters);
+        }
+
         List<Bson> filters = new ArrayList<>();
         for (PrimaryKey key : keys) {
-            Bson filter = Filters.eq(key.getName(), key.getValue());
-            filters.add(filter);
+            if (key.getName().equals("uid")) {
+                Bson filter = Filters.eq(key.getName(), key.getValue());
+                filters.add(filter);
+            } else {
+                Bson filter = Filters.eq("address." + key.getName(), key.getValue());
+                filters.add(filter);
+            }
+
         }
         return Filters.and(filters);
     }
 
-
-    public <T extends MongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
+    public <T extends AbstractMongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
         List<Bson> filters = new ArrayList<>();
         if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
@@ -278,7 +291,7 @@ public class MongoManager {
         return result;
     }
 
-    public <T extends MongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
+    public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
         FindIterable<T> result = this.find(clazz, query, QueryOptions.builder().limit(1));
         T t = result.first();
         if (t != null) {
@@ -287,7 +300,7 @@ public class MongoManager {
         return t;
     }
 
-    public <T extends MongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
+    public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
         FindIterable<T> result = this.find(clazz, query, options);
         MongoCursor<T> it = result.iterator();
         List<T> list = new ArrayList<>();
@@ -299,7 +312,7 @@ public class MongoManager {
         return list;
     }
 
-    private <T extends MongoPo> FindIterable<T> find(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
+    private <T extends AbstractMongoPo> FindIterable<T> find(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
         if (query == null) {
             throw new MException("[error][mdb][query is empty]");
         }
@@ -330,7 +343,6 @@ public class MongoManager {
         }
         return result.getInteger("value");
     }
-
 
     public <T extends MongoPo> long count(Class<T> clazz, QueryBuilder query) {
         BasicDBObject filter = (BasicDBObject) query.get();

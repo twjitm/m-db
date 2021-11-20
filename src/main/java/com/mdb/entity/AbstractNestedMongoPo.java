@@ -29,19 +29,17 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         if (!this.isBase()) {
             MongoId id = ids.get(0);
             String idv = data().get(id.name()).toString();
-           // Document doc = new Document(idv, document);
+            // Document doc = new Document(idv, document);
             nest.put(nested + "." + idv, document);
-            root.put("$set", nest);
-            return root;
         } else {
             nest.put(nested, document);
-            root.put("$set", nest);
-            return root;
         }
+        root.put("$set", nest);
+        return root;
     }
 
     @Override
-    public List<IndexModel> getIndex() {
+    public List<IndexModel> index() {
         List<IndexModel> ids = new ArrayList<>();
         List<Indexed> indexedList = ZClassUtils.getFieldAnnotations(this, Indexed.class);
         String nested = nested();
@@ -104,19 +102,9 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
             List<MongoId> rootIds = ZClassUtils.getFieldAnnotations(root, MongoId.class);
             Bson rootFilter = builderFilter(rootIds, data);
             Bson nested = Filters.exists(nestedPath(ids.get(0)), false);
-            return Filters.and(makeMongoId(rootIds, data), rootFilter, nested);
+            return Filters.and(Filters.eq("_id", makeMongoId(rootIds)), rootFilter, nested);
         }
-        return Filters.and(makeMongoId(ids, data), builderFilter(ids, data));
-    }
-
-
-    public Bson makeMongoId(List<MongoId> ids, Map<String, ?> data) {
-        String val = "";
-        for (int i = 0; i < ids.size(); i++) {
-            MongoId id = ids.get(i);
-            val = "_" + data.get(id.name()).toString();
-        }
-        return Filters.eq("_id", val.substring(1));
+        return Filters.and(Filters.eq("_id", makeMongoId(ids)), builderFilter(ids, data));
     }
 
     private Bson builderFilter(List<MongoId> ids, Map<String, ?> data) {

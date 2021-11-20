@@ -32,7 +32,7 @@ public interface MongoPo {
      *
      * @return 返回文档索引，包括简单索引和联合索引
      */
-    public List<IndexModel> getIndex();
+    public List<IndexModel> index();
 
     /**
      * 元数据
@@ -86,6 +86,8 @@ public interface MongoPo {
      * @return mongodb 中的表名称
      */
     String table();
+
+    Object makeMongoId(List<MongoId> mongoIds);
 
 
 }
