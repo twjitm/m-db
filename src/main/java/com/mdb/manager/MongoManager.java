@@ -1,6 +1,6 @@
 package com.mdb.manager;
 
-import com.mdb.base.query.Query;
+import com.mdb.base.query.QueryNestedOptions;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.*;
 import com.mdb.exception.MException;
@@ -15,19 +15,13 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.apache.commons.lang3.ClassUtils;
 import org.bson.Document;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 
 import java.util.*;
 
 
-import static com.mongodb.client.model.Accumulators.push;
-import static com.mongodb.client.model.Accumulators.sum;
-import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Sorts.descending;
 
 public class MongoManager {
@@ -248,15 +242,9 @@ public class MongoManager {
             throw new MException("[error][mdb][conduction is empty]");
         }
         if (MongoHelper.isNested(clazz)) {
-            String nested = MongoHelper.nested(clazz);
             Bson[] filters = MongoHelper.split(clazz, keys);
-            MongoIterable<Document> result = this.find(clazz, nested, filters[0], filters[1]);
-            Document document = result.first();
-            if (document == null) {
-                return null;
-            }
-            Document newRoot = document.get("newRoot", Document.class);
-            return MongoHelper.create(clazz, newRoot);
+            MongoIterable<Document> result = this.findNested(clazz, filters[0], filters[1], null, Aggregates.limit(1));
+            return parseOneResult(clazz, result);
         }
 
         Bson filter = parseFilters(keys);
@@ -267,20 +255,17 @@ public class MongoManager {
         return t;
     }
 
-    private <T extends MongoPo> Bson parseFilters(PrimaryKey[] keys) {
-        List<Bson> filters = new ArrayList<>();
-        for (PrimaryKey key : keys) {
-            Bson filter = Filters.eq(key.getName(), key.getValue());
-            filters.add(filter);
-        }
-        return Filters.and(filters);
-    }
+    public <T extends MongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
 
-    public <T extends AbstractMongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
-        List<Bson> filters = new ArrayList<>();
         if (ZCollectionUtil.isEmpty(keys)) {
             throw new MException("[error][mdb][conduction is empty]");
         }
+        if (MongoHelper.isNested(clazz)) {
+            Bson[] filters = MongoHelper.split(clazz, keys);
+            MongoIterable<Document> result = this.findNested(clazz, filters[0], filters[1], null, null);
+            return parseAllResult(clazz, result);
+        }
+        List<Bson> filters = new ArrayList<>();
         for (PrimaryKey key : keys) {
             Bson filter = Filters.eq(key.getName(), key.getValue());
             filters.add(filter);
@@ -299,7 +284,7 @@ public class MongoManager {
     }
 
     public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
-        FindIterable<T> result = this.find(clazz, query, QueryOptions.builder().limit(1));
+        FindIterable<T> result = this.findNested(clazz, query, QueryOptions.builder().limit(1));
         T t = result.first();
         if (t != null) {
             t.document();
@@ -308,7 +293,7 @@ public class MongoManager {
     }
 
     public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
-        FindIterable<T> result = this.find(clazz, query, options);
+        FindIterable<T> result = this.findNested(clazz, query, options);
         MongoCursor<T> it = result.iterator();
         List<T> list = new ArrayList<>();
         while (it.hasNext()) {
@@ -319,7 +304,7 @@ public class MongoManager {
         return list;
     }
 
-    private <T extends AbstractMongoPo> FindIterable<T> find(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
+    private <T extends AbstractMongoPo> FindIterable<T> findNested(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
         if (query == null) {
             throw new MException("[error][mdb][query is empty]");
         }
@@ -359,79 +344,106 @@ public class MongoManager {
 
     //嵌入式文档
 
-    public <T extends MongoPo> T findOne(Aggregates aggregates) throws MException {
-        if (aggregates == null) {
+    public <T extends AbstractNestedMongoPo> T findOne(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter,
+                                                       QueryBuilder nestedFilter, QueryNestedOptions options) throws MException {
+        if (rootPathFilter == null) {
             throw new MException("[error][mdb][query is empty]");
         }
-        return null;
+        Bson wrapperNested = nestedPathFilter == null ? null : MongoHelper.wrapperNestedPathFilter(clazz, (BasicDBObject) nestedPathFilter.get());
+        Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
+        BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
+        if (options == null) {
+            options = QueryNestedOptions.builder().limit(1);
+        }
+        MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, options.toAggregates());
+        return parseOneResult(clazz, result);
     }
 
-    public <T extends MongoPo> T findOne(Class<T> clazz, Filters filters, QueryOptions options) {
-        MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
-        return null;
+    public <T extends AbstractNestedMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter,
+                                                             QueryBuilder nestedFilter, QueryNestedOptions options) throws MException {
+        if (rootPathFilter == null) {
+            throw new MException("[error][mdb][query is empty]");
+        }
+        BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
+        Bson wrapperNested = nestedPathFilter == null ? null : MongoHelper.wrapperNestedPathFilter(clazz, (BasicDBObject) nestedPathFilter.get());
+        Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
+        Bson op = options == null ? null : options.toAggregates();
+        MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, op);
+        return parseAllResult(clazz, result);
     }
 
-    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> find(Class<E> clazz, String nestedName, Bson rootFilter, Bson nestedFilter) {
+
+    private <T extends MongoPo> T parseOneResult(Class<T> clazz, MongoIterable<Document> result) {
+        Document document = result.first();
+        if (document == null) {
+            return null;
+        }
+        Document newRoot = document.get("newRoot", Document.class);
+        return MongoHelper.create(clazz, newRoot);
+    }
+
+    private <T extends MongoPo> List<T> parseAllResult(Class<T> clazz, MongoIterable<Document> iterable) {
+        MongoCursor<Document> iterator = iterable.iterator();
+        List<T> result = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Document doc = iterator.next();
+            Document newRoot = doc.get("newRoot", Document.class);
+            for (Object document : newRoot.values()) {
+                result.add(MongoHelper.create(clazz, (Document) document));
+            }
+        }
+        return result;
+    }
+
+
+    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> findNested(Class<E> clazz, Bson rootPath, Bson nestedPath, Bson nested, Bson options) throws MException {
 
         boolean isBase = MongoHelper.isNestedBase(clazz);
+        String nestedName = MongoHelper.nested(clazz);
         List<Bson> pipeline = new ArrayList<>();
-        if (rootFilter != null) {
-            Bson rootMatch = Aggregates.match(rootFilter);
+        if (rootPath != null) {
+            Bson rootMatch = Aggregates.match(rootPath);
             pipeline.add(rootMatch);
         }
-        if (nestedFilter != null) {
-            pipeline.add(nestedFilter);
+        if (nestedPath != null) {
+            pipeline.add(nestedPath);
         }
-
-        if (!isBase) {
-//            Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
-//            Bson input = Filters.eq("input", objectToArray);
-//            Bson in = Filters.eq("in", Filters.and(Filters.eq("k", "$$this.k"), Filters.eq(nestedName, "$$this.v")));
-//            Bson map = Filters.and(input, in);
-//            Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
-//            pipeline.add(Aggregates.project(project));
-            pipeline.add(Aggregates.unwind("$" + nestedName));
+        int size = nested == null ? 0 : ((BasicDBObject) nested).size();
+        if (!isBase && nestedPath == null) {
+            for (int i = 0; i < size; i++) {
+                Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
+                Bson input = Filters.eq("input", objectToArray);
+                Bson in = Filters.eq("in", "$$this.v");
+                Bson map = Filters.and(input, in);
+                Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
+                pipeline.add(Aggregates.project(project));
+                pipeline.add(Aggregates.unwind("$" + nestedName));
+            }
         }
         Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot", "$" + nestedName));
         pipeline.add(replaceRoot);
+        if (nested != null) {
+            Bson wrapperNested = MongoHelper.wrapperNestedFilter(clazz, (BasicDBObject) nested);
+            Bson rootMatch = Aggregates.match(wrapperNested);
+            pipeline.add(rootMatch);
+        }
+
+        if (options != null) {
+            pipeline.add(options);
+        }
+
+
         return mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
     }
 
 
-    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> findTest(Class<E> clazz) throws InstantiationException, IllegalAccessException {
-
-        String nestedName = "address";
-        Bson rootFilter = Filters.eq("uid", 1);
-//        Bson nestedFilter = Filters.eq("aid", 11);
-//        Bson nextedMatch = Aggregates.match(nestedFilter);
-
-        boolean isBase = MongoHelper.isNestedBase(clazz);
-        List<Bson> pipeline = new ArrayList<>();
-        Bson rootMatch = Aggregates.match(rootFilter);
-        pipeline.add(rootMatch);
-        Bson nestedProject = Aggregates.project((eq(nestedName, "$" + nestedName + "." + 11)));
-        pipeline.add(nestedProject);
-        if (!isBase) {
-//            Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
-//            Bson input = Filters.eq("input", objectToArray);
-//            Bson in = Filters.eq("in", "$$this.v");
-//            Bson map = Filters.and(input, in);
-//            Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
-//            pipeline.add(Aggregates.project(project));
-            pipeline.add(Aggregates.unwind("$" + nestedName));
-
+    private <T extends MongoPo> Bson parseFilters(PrimaryKey[] keys) {
+        List<Bson> filters = new ArrayList<>();
+        for (PrimaryKey key : keys) {
+            Bson filter = Filters.eq(key.getName(), key.getValue());
+            filters.add(filter);
         }
-        Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot", "$" + nestedName));
-        E t = clazz.newInstance();
-        // Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot",Filters.in("$ifNull", "$" + nestedName,"")));
-        pipeline.add(replaceRoot);
-        AggregateIterable<Document> result = mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
-
-        Document doc = result.first();
-
-        System.out.println(doc);
-
-        return null;
+        return Filters.and(filters);
     }
 
 
@@ -446,7 +458,7 @@ public class MongoManager {
      * @param <T>
      * @return
      */
-    private <T extends MongoPo> List<T> find() {
+    private <T extends MongoPo> List<T> findNested() {
         return null;
     }
 

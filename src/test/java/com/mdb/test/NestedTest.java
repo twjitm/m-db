@@ -1,25 +1,41 @@
 package com.mdb.test;
 
 import com.mdb.base.query.Query;
+import com.mdb.entity.MongoPo;
+import com.mdb.entity.NestedMongoPo;
 import com.mdb.entity.PrimaryKey;
 import com.mdb.exception.MException;
+import com.mdb.helper.MongoHelper;
+import com.mdb.manager.MongoCollectionManager;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.AddressPo;
 import com.mdb.test.entity.UserInfoPo;
+import com.mongodb.QueryBuilder;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class NestedTest {
 
     public static void main(String[] args) throws MException {
         init();
-//        addUser();
-//        addManyUsers();
-//        addAddress();
-        get();
+        //findTest(AddressPo.class);
+        //addUser();
+        //addManyUsers();
+        //addAddress();
+        //get();
+        // getAll();
+        findOne();
+        findAll();
 
-        //findAll();
         //count();
         //update();
         //updateMany();
@@ -78,24 +94,28 @@ public class NestedTest {
 
 
     public static void get() throws MException {
-       // UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
-       // System.out.println(userInfoPo.toString());
+        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
+        System.out.println(userInfoPo.toString());
         AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("aid", 11));
 
-        System.out.println(address);
+        System.out.println(address.toString());
 
     }
 
 
     public static void getAll() throws MException {
-
+        List<AddressPo> list = MongoManager.getInstance().getAll(AddressPo.class, PrimaryKey.builder("uid", 1));
+        list.forEach(item -> System.out.println(item.toString()));
     }
 
     public static void findOne() throws MException {
-
+        AddressPo list = MongoManager.getInstance().findOne(AddressPo.class, Query.builder().and("uid", 1), null, Query.builder().and("address", "beijing2"), null);
+        System.out.println(list);
     }
 
-    public static void findAll() throws MException {
+    public static void findAll() throws MException {//Query.builder().and("address", "beijing2")
+        List<AddressPo> list = MongoManager.getInstance().findAll(AddressPo.class, Query.builder().and("uid", 1), null, null, null);
+        System.out.println(list.size());
     }
 
     public static void count() {
@@ -143,5 +163,47 @@ public class NestedTest {
         mongoManager.update(user2);
         user2.setJob("java developer");
         mongoManager.update(user2);
+    }
+
+    public static <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> findTest(Class<E> clazz) {
+
+        String nestedName = "address";
+        Bson rootFilter = Filters.eq("uid", 1);
+//        Bson nestedFilter = Filters.eq("aid", 11);
+//        Bson nextedMatch = Aggregates.match(nestedFilter);
+
+        boolean isBase = MongoHelper.isNestedBase(clazz);
+        List<Bson> pipeline = new ArrayList<>();
+        Bson rootMatch = Aggregates.match(rootFilter);
+        pipeline.add(rootMatch);
+
+        Bson nestedProject = Aggregates.project(eq(nestedName, "$" + nestedName + "." + 11));
+        // pipeline.add(nestedProject);
+
+        if (!isBase) {
+            Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
+            Bson input = Filters.eq("input", objectToArray);
+            Bson in = Filters.eq("in", "$$this.v");
+            Bson map = Filters.and(input, in);
+            Bson project = Filters.eq(nestedName, Filters.eq("$map", map));
+            pipeline.add(Aggregates.project(project));
+            pipeline.add(Aggregates.unwind("$" + nestedName));
+
+        }
+        Bson replaceRoot = Aggregates.replaceRoot(Filters.eq("newRoot", "$" + nestedName));
+        pipeline.add(replaceRoot);
+
+        pipeline.add(Aggregates.match(Filters.eq("newRoot.address", "beijing2")));
+        AggregateIterable<Document> result = new MongoCollectionManager("127.0.0.1:27017").getCollection(clazz).aggregate(pipeline);
+
+        System.out.println(result.first().get("newRoot"));
+//
+//        MongoCursor<Document> it = result.iterator();
+//        while (it.hasNext()){
+//            System.out.println(it.next());
+//        }
+
+
+        return null;
     }
 }

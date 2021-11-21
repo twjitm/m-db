@@ -332,6 +332,15 @@ public class ZClassUtils {
         return list;
     }
 
+    public static <T extends Annotation, E> T getFieldAnnotation(E t, String name, Class<T> type) {
+        String fieldName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name);
+        Field field = getField(t, name);
+        if (field == null) {
+            return null;
+        }
+        return field.getAnnotation(type);
+    }
+
 
     public static <T extends Annotation, E> T getClassAnnotations(Class<E> obj, Class<T> clazz) {
         return obj.getAnnotation(clazz);

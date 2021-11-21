@@ -52,9 +52,7 @@ public class QueryOptions {
         if (this.sort != null) {
             finder.sort(this.sort);
         }
-        if (this.skip > 0) {
-            finder.skip(this.skip);
-        }
+        //todo
     }
 
     public QueryOptions batchSize(int batchSize) {

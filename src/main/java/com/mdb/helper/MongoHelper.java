@@ -1,11 +1,11 @@
 package com.mdb.helper;
 
-import com.mdb.entity.AbstractNestedMongoPo;
 import com.mdb.entity.MongoPo;
 import com.mdb.entity.NestedMongoPo;
 import com.mdb.entity.PrimaryKey;
 import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
+import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -14,7 +14,9 @@ import org.bson.conversions.Bson;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -64,7 +66,7 @@ public class MongoHelper {
     /**
      * [rootFilter,nestedFilter]
      */
-    public static <T extends MongoPo> Bson[] split(Class<T> clazz, PrimaryKey[] keys) {
+    public static <T extends MongoPo> Bson[] split(Class<T> clazz, PrimaryKey[] keys) throws MException {
         Bson[] result = new Bson[2];
         if (isNestedBase(clazz)) {
             StringBuilder val = new StringBuilder();
@@ -81,14 +83,12 @@ public class MongoHelper {
         }
 
         List<Bson> rootFilter = new ArrayList<>(8);
-        List<Bson> nestedFilter = new ArrayList<>(8);
-        StringBuilder nestedVal = new StringBuilder();
+        Map<String, Object> map = new LinkedHashMap<>();
         for (PrimaryKey key : keys) {
             if (isRootKey(clazz, key.getName())) {
                 rootFilter.add(Filters.eq(key.getName(), key.getValue()));
             } else {
-                nestedFilter.add(Filters.eq(key.getName(), key.getValue()));
-                nestedVal.append(".").append(key.getValue());
+                map.put(key.getName(), key.getValue());
             }
         }
         if (!rootFilter.isEmpty()) {
@@ -96,14 +96,33 @@ public class MongoHelper {
         } else {
             result[0] = null;
         }
-        MongoDocument doc = mongoDocument(clazz);
-        if (!nestedFilter.isEmpty()) {
-            Bson nestedProject = Aggregates.project((eq(doc.nested(), "$" + doc.nested() + "." + nestedVal.substring(1))));
-            result[1] = nestedProject;
+        if (!map.isEmpty()) {
+            result[1] = wrapperNestedPathFilter(clazz, map);
         } else {
             result[1] = null;
         }
         return result;
+    }
+
+
+    public static <T extends MongoPo> Bson wrapperNestedPathFilter(Class<T> clazz, Map<String, Object> map) throws MException {
+        StringBuilder nestedVal = new StringBuilder();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            if (!isMongoIdKey(clazz, entry.getKey())) {
+                throw new MException("nested key filed");
+            }
+            nestedVal.append(".").append(entry.getValue());
+        }
+        MongoDocument doc = mongoDocument(clazz);
+        return Aggregates.project((eq(doc.nested(), "$" + doc.nested() + "." + nestedVal.substring(1))));
+    }
+
+    public static <T extends MongoPo> Bson wrapperNestedFilter(Class<T> clazz, Map<String, Object> map) throws MException {
+        List<Bson> array = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            array.add(Filters.eq("newRoot." + entry.getKey(), entry.getValue()));
+        }
+        return Filters.and(array);
     }
 
 
@@ -121,6 +140,15 @@ public class MongoHelper {
         }
         return false;
     }
+
+    public static <T extends MongoPo> boolean isMongoIdKey(Class<T> clazz, String key) {
+        if (isRootKey(clazz, key)) {
+            return true;
+        }
+        MongoId id = ZClassUtils.getFieldAnnotation(clazz, key, MongoId.class);
+        return id != null;
+    }
+
 
 //    public static <T extends MongoPo> void build(Class<T> clazz,) {
 //        if (!NestedMongoPo.class.isAssignableFrom(clazz)) {
