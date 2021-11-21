@@ -20,10 +20,6 @@ import org.bson.conversions.Bson;
 
 import java.util.*;
 
-
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Sorts.descending;
-
 public class MongoManager {
 
     private MongoSyncManager mongoSyncManager;
@@ -284,7 +280,7 @@ public class MongoManager {
     }
 
     public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
-        FindIterable<T> result = this.findNested(clazz, query, QueryOptions.builder().limit(1));
+        FindIterable<T> result = this.findSimple(clazz, query, QueryOptions.builder().limit(1));
         T t = result.first();
         if (t != null) {
             t.document();
@@ -293,7 +289,7 @@ public class MongoManager {
     }
 
     public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
-        FindIterable<T> result = this.findNested(clazz, query, options);
+        FindIterable<T> result = this.findSimple(clazz, query, options);
         MongoCursor<T> it = result.iterator();
         List<T> list = new ArrayList<>();
         while (it.hasNext()) {
@@ -304,7 +300,7 @@ public class MongoManager {
         return list;
     }
 
-    private <T extends AbstractMongoPo> FindIterable<T> findNested(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
+    private <T extends AbstractMongoPo> FindIterable<T> findSimple(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
         if (query == null) {
             throw new MException("[error][mdb][query is empty]");
         }
@@ -396,7 +392,7 @@ public class MongoManager {
     }
 
 
-    private <T extends NestedMongoPo, E extends MongoPo> MongoIterable<Document> findNested(Class<E> clazz, Bson rootPath, Bson nestedPath, Bson nested, Bson options) throws MException {
+    private <E extends MongoPo> MongoIterable<Document> findNested(Class<E> clazz, Bson rootPath, Bson nestedPath, Bson nested, Bson options) throws MException {
 
         boolean isBase = MongoHelper.isNestedBase(clazz);
         String nestedName = MongoHelper.nested(clazz);
@@ -445,22 +441,5 @@ public class MongoManager {
         }
         return Filters.and(filters);
     }
-
-
-    /**
-     * Stage
-     * {name='$project', value=
-     * Filter{fieldName='address',value=
-     * Filter{fieldName='$map', value=
-     * And Filter{filters=[Filter{fieldName='input', value=
-     * Filter{fieldName='$objectToArray', value=$address}}, Filter{fieldName='in', value=$$this.v}]}}}}
-     *
-     * @param <T>
-     * @return
-     */
-    private <T extends MongoPo> List<T> findNested() {
-        return null;
-    }
-
 
 }
