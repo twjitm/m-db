@@ -341,17 +341,14 @@ public class MongoManager {
     //嵌入式文档
 
     public <T extends AbstractNestedMongoPo> T findOne(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter,
-                                                       QueryBuilder nestedFilter, QueryNestedOptions options) throws MException {
+                                                       QueryBuilder nestedFilter) throws MException {
         if (rootPathFilter == null) {
             throw new MException("[error][mdb][query is empty]");
         }
         Bson wrapperNested = nestedPathFilter == null ? null : MongoHelper.wrapperNestedPathFilter(clazz, (BasicDBObject) nestedPathFilter.get());
         Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
         BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
-        if (options == null) {
-            options = QueryNestedOptions.builder().limit(1);
-        }
-        MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, options.toAggregates());
+        MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, Aggregates.limit(1));
         return parseOneResult(clazz, result);
     }
 

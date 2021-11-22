@@ -109,7 +109,7 @@ public class NestedTest {
     }
 
     public static void findOne() throws MException {
-        AddressPo list = MongoManager.getInstance().findOne(AddressPo.class, Query.builder().and("uid", 1), null, Query.builder().and("address", "beijing2"), null);
+        AddressPo list = MongoManager.getInstance().findOne(AddressPo.class, Query.builder().and("uid", 1), null, Query.builder().and("address", "beijing2"));
         System.out.println(list);
     }
 
