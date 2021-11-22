@@ -18,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.mongodb.client.model.Filters.eq;
 
 /**
  * @author twjitm
@@ -63,6 +62,65 @@ public class MongoHelper {
         return t;
     }
 
+    public static <T extends NestedMongoPo> Bson rootFilter(T obj) {
+
+        List<MongoId> ids = getMongoIds(obj.getClass());
+        if (!isNestedBase(obj.getClass())) {
+            List<MongoId> rootIds = getMongoIds(getRooterClass(obj));
+            Bson rootFilter = wrapperMongoIds(rootIds, obj);
+            Bson nested = Filters.exists(nestedPath(ids, obj), false);
+            return Filters.and(Filters.eq("_id", makeMongoId(rootIds, obj)), rootFilter, nested);
+        }
+        return Filters.and(Filters.eq("_id", makeMongoId(ids, obj)), wrapperMongoIds(ids, obj));
+    }
+
+    public static <T extends MongoPo> List<MongoId> getMongoIds(Class<T> clazz) {
+        return ZClassUtils.getFieldAnnotations(clazz, MongoId.class);
+    }
+
+    public static <T extends MongoPo> Class<T> getRooterClass(T t) {
+        return (Class<T>) getRooterClass(t.getClass());
+    }
+
+    public static <T extends MongoPo> Class<T> getRooterClass(Class<T> t) {
+        MongoDocument document = t.getAnnotation(MongoDocument.class);
+        Class<T> root = (Class<T>) document.rooter();
+        return root;
+    }
+
+    // 1_3
+    public static <T extends MongoPo> Object makeMongoId(List<MongoId> ids, T obj) {
+        Map<String, ?> data = obj.data();
+        StringBuilder val = new StringBuilder();
+
+        for (MongoId id : ids) {
+            val.append("_").append(data.get(id.name()).toString());
+        }
+        return val.substring(1);
+    }
+
+    public static <T extends MongoPo> String nestedPath(List<MongoId> ids, T t) {
+        if (isNestedBase(t.getClass())) {
+            return "";
+        }
+        Map<String, ?> data = t.data();
+        StringBuilder and = new StringBuilder();
+        for (MongoId item : ids) {
+            and.append(item.name()).append("=").append(data.get(item.name()));
+        }
+        return nested(t.getClass()) + "." + and.substring(1);
+    }
+
+    private static <T extends MongoPo> Bson wrapperMongoIds(List<MongoId> ids, T obj) {
+        List<Bson> list = new ArrayList<>();
+        Map<String, ?> data = obj.data();
+        for (MongoId id : ids) {
+            Object val = data.get(id.name());
+            list.add(Filters.eq(id.name(), val));
+        }
+        return Filters.and(list);
+    }
+
     /**
      * [rootFilter,nestedFilter]
      */
@@ -85,7 +143,7 @@ public class MongoHelper {
         List<Bson> rootFilter = new ArrayList<>(8);
         Map<String, Object> map = new LinkedHashMap<>();
         for (PrimaryKey key : keys) {
-            if (isRootKey(clazz, key.getName())) {
+            if (isMongoRootIdKey(clazz, key.getName())) {
                 rootFilter.add(Filters.eq(key.getName(), key.getValue()));
             } else {
                 map.put(key.getName(), key.getValue());
@@ -114,7 +172,7 @@ public class MongoHelper {
             nestedVal.append(".").append(entry.getValue());
         }
         MongoDocument doc = mongoDocument(clazz);
-        return Aggregates.project((eq(doc.nested(), "$" + doc.nested() + "." + nestedVal.substring(1))));
+        return Aggregates.project((Filters.eq(doc.nested(), "$" + doc.nested() + "." + nestedVal.substring(1))));
     }
 
     public static <T extends MongoPo> Bson wrapperNestedFilter(Class<T> clazz, Map<String, Object> map) throws MException {
@@ -126,13 +184,18 @@ public class MongoHelper {
     }
 
 
-    public static <T extends MongoPo> boolean isRootKey(Class<T> clazz, String keyName) {
+    public static <T extends MongoPo> boolean isMongoRootIdKey(Class<T> clazz, String keyName) {
         if (isNestedBase(clazz)) {
-            return true;
+            List<MongoId> mongoIdList = getMongoIds(clazz);
+            for (MongoId mongoId : mongoIdList) {
+                if (mongoId.name().equals(keyName)) {
+                    return true;
+                }
+            }
+            return false;
         }
-        MongoDocument base = mongoDocument(clazz);
-        Class<? extends NestedMongoPo> rootClazz = base.rooter();
-        List<MongoId> mongoIdList = ZClassUtils.getFieldAnnotations(rootClazz, MongoId.class);
+        Class<T> rootClazz = getRooterClass(clazz);
+        List<MongoId> mongoIdList = getMongoIds(rootClazz);
         for (MongoId mongoId : mongoIdList) {
             if (mongoId.name().equals(keyName)) {
                 return true;
@@ -141,8 +204,13 @@ public class MongoHelper {
         return false;
     }
 
+    public static <T extends NestedMongoPo> String table(T obj) {
+        return mongoDocument(obj.getClass()).table();
+    }
+
+
     public static <T extends MongoPo> boolean isMongoIdKey(Class<T> clazz, String key) {
-        if (isRootKey(clazz, key)) {
+        if (isMongoRootIdKey(clazz, key)) {
             return true;
         }
         MongoId id = ZClassUtils.getFieldAnnotation(clazz, key, MongoId.class);
