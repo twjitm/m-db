@@ -9,7 +9,10 @@ import com.mdb.enums.MongoId;
  */
 @MongoDocument(database = "mdb", table = "user_info", nested = "address", rooter = UserInfoPo.class)
 public class AddressPo extends AbstractNestedMongoPo {
+    @MongoId(name = "uid")
     private long uid;
+    @MongoId(name = "pid")
+    private long pid;
     @MongoId(name = "aid", tick = true, order = 0)
     private long aid;
     private String address;
@@ -39,10 +42,19 @@ public class AddressPo extends AbstractNestedMongoPo {
         this.address = address;
     }
 
+    public long getPid() {
+        return pid;
+    }
+
+    public void setPid(long pid) {
+        this.pid = pid;
+    }
+
     @Override
     public String toString() {
         return "AddressPo{" +
                 "uid=" + uid +
+                ", pid=" + pid +
                 ", aid=" + aid +
                 ", address='" + address + '\'' +
                 '}';

@@ -31,10 +31,10 @@ public class NestedTest {
         //addUser();
         //addManyUsers();
         //addAddress();
-        //get();
+        get();
         // getAll();
-        findOne();
-        findAll();
+       // findOne();
+        //findAll();
 
         //count();
         //update();
@@ -52,7 +52,7 @@ public class NestedTest {
     }
 
     public static void addUser() throws MException {
-        for (int i = 4; i < 6; i++) {
+        for (int i = 1; i < 6; i++) {
             UserInfoPo user = new UserInfoPo();
             user.setAge((byte) 26);
             user.setName("twj_" + i);
@@ -84,19 +84,20 @@ public class NestedTest {
     }
 
     public static void addAddress() throws MException {
-        for (int i = 1; i < 3; i++) {
+        for (int i = 1; i < 6; i++) {
             AddressPo addressPo = new AddressPo();
             addressPo.setAddress("beijing" + i);
             addressPo.setUid(1);
+            addressPo.setPid(3);
             MongoManager.getInstance().add(addressPo);
         }
     }
 
 
     public static void get() throws MException {
-        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
-        System.out.println(userInfoPo.toString());
-        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("aid", 11));
+//        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
+//        System.out.println(userInfoPo.toString());
+        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2));
 
         System.out.println(address.toString());
 

@@ -14,7 +14,6 @@ public class IndexTest {
     public static void createIndex() {
         MongoManager.getInstance().createIndex(UserInfoPo.class);
         MongoManager.getInstance().createIndex(BuildPo.class);
-        MongoManager.getInstance().createIndex(AddressPo.class);
     }
 
 }
