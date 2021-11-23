@@ -1,24 +1,25 @@
 # m-db
-### abstract
-##### what is this?
-Welcome to use this project.
-### Java ORM to Mongodb 
-This project is based on the mongodb driver package development, which greatly simplifies the native API and enables developers to focus on the business itself. The project uses an annotation style pattern that simplifies configuration like XML.
 
-##### Features
+### 简介
+##### 这是个什么？
+欢迎使用本项目。
 
-1: Simple document mapping \
-2: nested document mapping \
-3: asynchronous storage. Batch storage \
-4: index
+本项目基于mongodb-driver封装开发，极大简化了原生API，使得开发人员专注业务本身。项目采用注解风格模式，简化了类似xml这样的配置。
 
-### Instructions
+##### 主要功能
 
-#### 1. simple documents
+1：简单文档映射 \
+2：内嵌文档映射 \
+3：异步存储。批量存储 \
+4：索引管理
 
-Simple document: The document structure is simple, and the field type is basic data type field. \
-Use steps:
-###### 1.1: Assemble entity class PO objects
+### 使用说明
+
+#### 一、 简单文档使用
+
+简单文档：文档结构简单，字段类型基本为基础数据类型字段。\
+使用步骤：
+###### 1.1 :组装实体类PO对象
 ``` java
 /**
  * 一个简单文档
@@ -37,11 +38,10 @@ public class BuildPo extends AbstractMongoPo {
     private String type;
     private String name; 
 ``` 
-MongoDocument annotation @mongoDocument database name to specify the table name, @compoundIndex to specify which fields 
-to use as the joint index. You can also use @indexed to specify a separate index and @mongoid to specify a primary key.
- Since mongodb can't implement mysql customization, indexes use this annotation to specify primary key customization
+其中通过注解@MongoDocument 数据库名字，指定表名，注解@CompoundIndex 指定用那几个字段作为联合索引
+也可以用@Indexed 来单独指定索引,使用@MongoId来指定主键，由于mongodb无法实现类似mysql自增，索引采用此注解来来是否指定主键自增
 
-###### 1.2 insert data
+###### 1.2 添加数据
 ``` java
   public static void addBuild() throws MException {
         BuildPo buildPo = new BuildPo();
@@ -53,7 +53,7 @@ to use as the joint index. You can also use @indexed to specify a separate index
         MongoManager.getInstance().add(buildPo);
     }
 ``` 
-###### 1.3 insert many 
+###### 1.3 批量添加
 ```java 
     private static void addManyBuild() throws MException {
         List<BuildPo> list = new ArrayList<>();
@@ -67,10 +67,9 @@ to use as the joint index. You can also use @indexed to specify a separate index
         MongoManager.getInstance().addMany(list);
     }
 ```
-##### 1.4 find
+##### 1.4 查询
 
-Query can be divided into two ways, one is to use the @mongoid annotation 'get' primary key to query,
- and the other is to use a field to 'find' query
+ 查询方式可分为两种，一种是利用@mongoID注解的主键进行查询，一种是通过某个字段进行find 查询
  
  ```java 
 
@@ -99,7 +98,7 @@ Query can be divided into two ways, one is to use the @mongoid annotation 'get' 
 
     }
 ```
-##### 1.4 update
+##### 1.4 修改
 
 
 

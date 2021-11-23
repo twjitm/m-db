@@ -16,9 +16,7 @@ public class UserInfoPo extends AbstractNestedMongoPo {
 
     @Indexed(name = "name", unique = true)
     private String name;
-
     private int age;
-
     private String job;
 
     @BsonProperty(value = "job_type")

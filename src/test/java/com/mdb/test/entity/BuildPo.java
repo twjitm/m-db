@@ -21,6 +21,8 @@ public class BuildPo extends AbstractMongoPo {
     private long buildId;
     private int x;
     private int y;
+    private String type;
+    private String name;
 
 
     public long getUid() {
@@ -53,5 +55,21 @@ public class BuildPo extends AbstractMongoPo {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -3,7 +3,6 @@ package com.mdb.test;
 import com.mdb.base.query.Query;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.PrimaryKey;
-import com.mdb.entity.TickId;
 import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
 import com.mdb.test.entity.AddressPo;
@@ -21,8 +20,7 @@ public class SimpleTest {
 
     public static void main(String[] args) throws MException {
         init();
-
-        // AddBuild();
+        addBuild();
         get();
         getAll();
         findOne();
@@ -42,15 +40,19 @@ public class SimpleTest {
         MongoManager.getInstance().addMany(list);
     }
 
-    public static void AddBuild() throws MException {
+    public static void addBuild() throws MException {
         BuildPo buildPo = new BuildPo();
         buildPo.setY(6);
         buildPo.setX(7);
         buildPo.setUid(1);
+        buildPo.setName("北京SOHO大厦");
+        buildPo.setType("高端建筑");
         MongoManager.getInstance().add(buildPo);
-
     }
 
+    /**
+     * 主键查询
+     */
     public static void get() throws MException {
         BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 7));
         System.out.println(b.getBuildId());

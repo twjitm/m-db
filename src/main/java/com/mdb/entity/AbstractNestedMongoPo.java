@@ -4,6 +4,7 @@ import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
+import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZStringUtils;
 import com.mongodb.client.model.Filters;
@@ -29,7 +30,6 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
         if (!this.isBase()) {
             MongoId id = ids.get(0);
             String idv = data().get(id.name()).toString();
-            // Document doc = new Document(idv, document);
             nest.put(nested + "." + idv, document);
         } else {
             nest.put(nested, document);
@@ -132,20 +132,13 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
 
     @Override
     public String table() {
-        String root = rooter();
-        if (!ZStringUtils.isEmpty(root)) {
-            return root;
-        }
         return super.table();
     }
 
-    String nestedPath() {
-        return "";
-    }
 
     @Override
     public String nested() {
-        MongoDocument document = this.getClass().getAnnotation(MongoDocument.class);
+        MongoDocument document = MongoHelper.mongoDocument(this.getClass());
         return document.nested();
     }
 }

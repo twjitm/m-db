@@ -7,7 +7,7 @@ import com.mdb.enums.MongoId;
 /**
  * 把addressPo这个对象嵌入到user这个对象中
  */
-@MongoDocument(database = "mdb", table = "address", nested = "address", rooter = UserInfoPo.class)
+@MongoDocument(database = "mdb", table = "user_info", nested = "address", rooter = UserInfoPo.class)
 public class AddressPo extends AbstractNestedMongoPo {
     private long uid;
     @MongoId(name = "aid", tick = true, order = 0)
