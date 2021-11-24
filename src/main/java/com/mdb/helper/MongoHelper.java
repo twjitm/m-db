@@ -62,7 +62,7 @@ public class MongoHelper {
         return t;
     }
 
-    public static <T extends NestedMongoPo> Bson rootFilter(T obj) {
+    public static <T extends MongoPo> Bson rootFilter(T obj) {
 
         List<MongoId> ids = getMongoIds(obj.getClass());
         if (!isNestedBase(obj.getClass())) {
@@ -123,8 +123,10 @@ public class MongoHelper {
 
     /**
      * [rootFilter,nestedFilter]
+     *
+     * todo
      */
-    public static <T extends MongoPo> Bson[] split(Class<T> clazz, PrimaryKey[] keys) throws MException {
+    public static <T extends MongoPo> Bson[] splitPrimaryKey(Class<T> clazz, PrimaryKey[] keys) throws MException {
         Bson[] result = new Bson[2];
         if (isNestedBase(clazz)) {
             StringBuilder val = new StringBuilder();
@@ -166,9 +168,6 @@ public class MongoHelper {
     public static <T extends MongoPo> Bson wrapperNestedPathFilter(Class<T> clazz, Map<String, Object> map) throws MException {
         StringBuilder nestedVal = new StringBuilder();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (!isMongoIdKey(clazz, entry.getKey())) {
-                throw new MException("nested key filed");
-            }
             nestedVal.append(".").append(entry.getValue());
         }
         MongoDocument doc = mongoDocument(clazz);
@@ -217,6 +216,27 @@ public class MongoHelper {
         return id != null;
     }
 
+    public <T extends MongoPo> List<String> getRootKey(Class<T> clazz) {
+        List<String> list = new ArrayList<>();
+        if (isNestedBase(clazz)) {
+            List<MongoId> ids = getMongoIds(clazz);
+            ids.forEach(item -> list.add(item.name()));
+            return list;
+        }
+        Class<T> root = getRooterClass(clazz);
+        return getRootKey(root);
+    }
+
+    public <T extends MongoPo> List<String> getNestedKey(Class<T> clazz) {
+        List<String> list = new ArrayList<>();
+        List<MongoId> ids = getMongoIds(clazz);
+        ids.forEach(item -> {
+            if (!isMongoRootIdKey(clazz, item.name())) {
+                list.add(item.name());
+            }
+        });
+        return list;
+    }
 
 //    public static <T extends MongoPo> void build(Class<T> clazz,) {
 //        if (!NestedMongoPo.class.isAssignableFrom(clazz)) {

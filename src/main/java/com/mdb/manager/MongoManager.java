@@ -123,7 +123,7 @@ public class MongoManager {
         }
         Document saveDocument = t.saveDocument();
         if (t instanceof AbstractNestedMongoPo) {
-            Bson filter = ((AbstractNestedMongoPo) t).rootFilter();
+            Bson filter = MongoHelper.rootFilter(t);
             UpdateOptions ops = new UpdateOptions();
             ops.upsert(true);
             if (async) {
@@ -238,7 +238,7 @@ public class MongoManager {
             throw new MException("[error][mdb][conduction is empty]");
         }
         if (MongoHelper.isNested(clazz)) {
-            Bson[] filters = MongoHelper.split(clazz, keys);
+            Bson[] filters = MongoHelper.splitPrimaryKey(clazz, keys);
             MongoIterable<Document> result = this.findNested(clazz, filters[0], filters[1], null, Aggregates.limit(1));
             return parseOneResult(clazz, result);
         }
@@ -257,7 +257,7 @@ public class MongoManager {
             throw new MException("[error][mdb][conduction is empty]");
         }
         if (MongoHelper.isNested(clazz)) {
-            Bson[] filters = MongoHelper.split(clazz, keys);
+            Bson[] filters = MongoHelper.splitPrimaryKey(clazz, keys);
             MongoIterable<Document> result = this.findNested(clazz, filters[0], filters[1], null, null);
             return parseAllResult(clazz, result);
         }
@@ -367,6 +367,7 @@ public class MongoManager {
 
 
     private <T extends MongoPo> T parseOneResult(Class<T> clazz, MongoIterable<Document> result) {
+        //todo 层级问题
         Document document = result.first();
         if (document == null) {
             return null;
@@ -424,8 +425,6 @@ public class MongoManager {
         if (options != null) {
             pipeline.add(options);
         }
-
-
         return mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
     }
 
