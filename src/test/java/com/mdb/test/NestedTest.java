@@ -31,9 +31,9 @@ public class NestedTest {
         //addUser();
         //addManyUsers();
         //addAddress();
-        get();
-        // getAll();
-       // findOne();
+        //get();
+        getAll();
+        // findOne();
         //findAll();
 
         //count();
@@ -97,7 +97,7 @@ public class NestedTest {
     public static void get() throws MException {
 //        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
 //        System.out.println(userInfoPo.toString());
-        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2));
+        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2), PrimaryKey.builder("aid", 11));
 
         System.out.println(address.toString());
 
@@ -105,7 +105,7 @@ public class NestedTest {
 
 
     public static void getAll() throws MException {
-        List<AddressPo> list = MongoManager.getInstance().getAll(AddressPo.class, PrimaryKey.builder("uid", 1));
+        List<AddressPo> list = MongoManager.getInstance().getAll(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2));
         list.forEach(item -> System.out.println(item.toString()));
     }
 
