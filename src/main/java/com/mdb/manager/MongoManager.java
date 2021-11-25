@@ -383,6 +383,9 @@ public class MongoManager {
         while (iterator.hasNext()) {
             Document doc = iterator.next();
             Document newRoot = doc.get("newRoot", Document.class);
+            if (newRoot == null || newRoot.size() == 0) {
+                continue;
+            }
             for (Object document : newRoot.values()) {
                 result.add(MongoHelper.create(clazz, (Document) document));
             }
