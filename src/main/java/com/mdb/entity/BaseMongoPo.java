@@ -5,11 +5,9 @@ import com.mdb.enums.MongoId;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.exception.MException;
+import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Indexes;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -33,29 +31,6 @@ public abstract class BaseMongoPo implements MongoPo {
         Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
         kv.forEach(document::put);
         return document;
-    }
-
-
-    @Override
-    public List<IndexModel> index() {
-        List<IndexModel> ids = new ArrayList<>();
-        List<Indexed> indexedList = ZClassUtils.getFieldAnnotations(this, Indexed.class);
-        indexedList.forEach(item ->
-                ids.add(new IndexModel(item.order() == 1 ? Indexes.ascending(item.name()) : Indexes.descending(item.name()),
-                        new IndexOptions().unique(item.unique()))));
-        CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this.getClass(), CompoundIndexed.class);
-        if (compoundIndex != null) {
-            Indexed[] array = compoundIndex.value();
-            int order = compoundIndex.order();
-            Bson[] bs = new Bson[array.length];
-            for (int i = array.length - 1; i >= 0; i--) {
-                Indexed index = array[i];
-                bs[i] = order == 1 ? Indexes.ascending(index.name()) : Indexes.descending(index.name());
-            }
-            ids.add(new IndexModel(Indexes.compoundIndex(bs), new IndexOptions().unique(compoundIndex.unique())));
-        }
-        return ids;
-
     }
 
     @Override
@@ -134,13 +109,4 @@ public abstract class BaseMongoPo implements MongoPo {
         return this.document().toJson();
     }
 
-    @Override
-    public Object makeMongoId(List<MongoId> ids) {
-        Map<String, ?> data = data();
-        StringBuilder val = new StringBuilder();
-        for (MongoId id : ids) {
-            val.append("_").append(data.get(id.name()).toString());
-        }
-        return val.substring(1);
-    }
 }

@@ -87,7 +87,4 @@ public interface MongoPo {
      */
     String table();
 
-    Object makeMongoId(List<MongoId> mongoIds);
-
-
 }

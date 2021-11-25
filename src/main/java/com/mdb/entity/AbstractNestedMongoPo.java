@@ -42,6 +42,11 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
     }
 
     @Override
+    public boolean checkPrimary() {
+        return false;
+    }
+
+    @Override
     public List<IndexModel> index() {
         List<IndexModel> ids = new ArrayList<>();
         Class<? extends NestedMongoPo> clazz = this.getClass();

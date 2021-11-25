@@ -6,4 +6,6 @@ package com.mdb.entity;
  */
 public interface NestedMongoPo extends MongoPo {
 
+
+    public boolean checkPrimary();
 }
