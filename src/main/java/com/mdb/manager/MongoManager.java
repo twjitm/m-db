@@ -16,6 +16,7 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.bson.RawBsonArray;
 import org.bson.conversions.Bson;
 
 import java.util.*;
@@ -240,7 +241,11 @@ public class MongoManager {
         if (MongoHelper.isNested(clazz)) {
             Bson[] filters = MongoHelper.adaptPrimaryKey(clazz, keys);
             Bson root = filters[0];
-            Bson nested = filters[1];
+            BasicDBObject nested = (BasicDBObject) filters[1];
+            List<String> nestKeys = MongoHelper.getNestedKey(clazz);
+            if (nestKeys.size() != nested.size()) {
+                throw new MException("[error][mdb][nested path filter not match]");
+            }
             MongoIterable<Document> result = this.findNested(clazz, root, nested, null, Aggregates.limit(1));
             return parseOneResult(clazz, result);
         }
@@ -347,9 +352,10 @@ public class MongoManager {
         if (rootPathFilter == null) {
             throw new MException("[error][mdb][query is empty]");
         }
-        Bson wrapperNested = nestedPathFilter == null ? null : MongoHelper.wrapperNestedPathFilter(clazz, (BasicDBObject) nestedPathFilter.get());
+
         Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
         BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
+        Bson wrapperNested = nestedPathFilter == null ? null : (BasicDBObject) nestedPathFilter.get();
         MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, Aggregates.limit(1));
         return parseOneResult(clazz, result);
     }
@@ -360,7 +366,7 @@ public class MongoManager {
             throw new MException("[error][mdb][query is empty]");
         }
         BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
-        Bson wrapperNested = nestedPathFilter == null ? null : MongoHelper.wrapperNestedPathFilter(clazz, (BasicDBObject) nestedPathFilter.get());
+        Bson wrapperNested = nestedPathFilter == null ? null : (BasicDBObject) nestedPathFilter.get();
         Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
         Bson op = options == null ? null : options.toAggregates();
         MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, op);
@@ -386,9 +392,7 @@ public class MongoManager {
             if (newRoot == null || newRoot.size() == 0) {
                 continue;
             }
-            for (Object document : newRoot.values()) {
-                result.add(MongoHelper.create(clazz, (Document) document));
-            }
+            result.add(MongoHelper.create(clazz, (Document) newRoot));
         }
         return result;
     }
@@ -403,11 +407,16 @@ public class MongoManager {
             Bson rootMatch = Aggregates.match(rootPath);
             pipeline.add(rootMatch);
         }
+        int deep = 0;
         if (nestedPath != null) {
+            BasicDBObject map = (BasicDBObject) nestedPath;
+            deep = map.size();
+            nestedPath = MongoHelper.wrapperNestedPathFilter(clazz, map);
             pipeline.add(nestedPath);
         }
-        int size = nested == null ? 0 : ((BasicDBObject) nested).size();
-        if (!isBase && nestedPath == null) {
+        List<String> nestKeyList = MongoHelper.getNestedKey(clazz);
+        int size = nestKeyList.size() - deep;
+        if (!isBase && size > 0) {
             for (int i = 0; i < size; i++) {
                 Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
                 Bson input = Filters.eq("input", objectToArray);

@@ -7,16 +7,14 @@ import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 import com.mdb.exception.MException;
 import com.mdb.utils.ZClassUtils;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -138,29 +136,34 @@ public class MongoHelper {
      * todo
      */
     public static <T extends MongoPo> Bson[] adaptPrimaryKey(Class<T> clazz, PrimaryKey[] keys) throws MException {
-        Bson[] result = new Bson[2];
         if (isNestedBase(clazz)) {
+            Bson[] result = new Bson[2];
             Bson[] roots = new Bson[keys.length + 1];
             for (int i = 0; i < keys.length; i++) {
                 roots[i] = Filters.eq(keys[i].getName(), keys[i].getValue());
+            }
+            if (roots.length != getRootKey(clazz).size()) {
+                throw new MException("[mdb][root key not match]");
             }
             roots[keys.length] = makeMongoId(keys);
             result[0] = Filters.and(roots);
             result[1] = null;
             return result;
         }
-
         List<Bson> rootFilter = new ArrayList<>(8);
-        Map<String, Object> map = new LinkedHashMap<>();
+        BasicDBObject bo = new BasicDBObject();
         for (PrimaryKey key : keys) {
-            if (isMongoRootIdKey(clazz, key.getName())) {
-                rootFilter.add(Filters.eq(key.getName(), key.getValue()));
+            String k = key.getName();
+            Object v = key.getValue();
+            if (isMongoRootIdKey(clazz, k)) {
+                rootFilter.add(Filters.eq(k, v));
                 continue;
             }
-            map.put(key.getName(), key.getValue());
+            bo.append(k, v);
         }
+        Bson[] result = new Bson[2];
         result[0] = !rootFilter.isEmpty() ? Filters.and(rootFilter) : null;
-        result[1] = !map.isEmpty() ? wrapperNestedPathFilter(clazz, map) : null;
+        result[1] = !bo.isEmpty() ? bo : null;
         return result;
     }
 

@@ -31,12 +31,13 @@ public class NestedTest {
         //addUser();
         //addManyUsers();
         //addAddress();
-        //get();
+        get();
         getAll();
-        // findOne();
-        //findAll();
+        findOne();
+        findAll();
+        findAll();
 
-        //count();
+        count();
         //update();
         //updateMany();
         //nextId();
@@ -105,7 +106,7 @@ public class NestedTest {
 
 
     public static void getAll() throws MException {
-        List<AddressPo> list = MongoManager.getInstance().getAll(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2));
+        List<AddressPo> list = MongoManager.getInstance().getAll(AddressPo.class, PrimaryKey.builder("uid", 1));
         list.forEach(item -> System.out.println(item.toString()));
     }
 
@@ -115,13 +116,12 @@ public class NestedTest {
     }
 
     public static void findAll() throws MException {//Query.builder().and("address", "beijing2")
-        List<AddressPo> list = MongoManager.getInstance().findAll(AddressPo.class, Query.builder().and("uid", 1), null, null, null);
+        List<AddressPo> list = MongoManager.getInstance().findAll(AddressPo.class, Query.builder().and("uid", 1), Query.builder().and("pid", 2), Query.builder().and("address", "beijing2"), null);
         System.out.println(list.size());
     }
 
     public static void count() {
-        long count = MongoManager.getInstance().count(UserInfoPo.class,
-                Query.builder().in("uid", 1, 2));
+        long count = MongoManager.getInstance().count(UserInfoPo.class, Query.builder().in("uid", 1, 2));
         System.out.println(count);
     }
 
