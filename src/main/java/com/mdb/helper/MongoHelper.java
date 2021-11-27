@@ -23,12 +23,6 @@ import java.util.*;
 public class MongoHelper {
 
     /**
-     * C.class.isAssignableFrom(B.class)
-     * B 是不是 C 的实现或者是子类
-     */
-
-
-    /**
      * 是否位内嵌式
      */
     public static <T extends MongoPo> boolean isNested(Class<T> clazz) {
@@ -56,7 +50,6 @@ public class MongoHelper {
 
     public static <T extends MongoPo> T create(Class<T> clazz, Document document) {
         T t = ZClassUtils.create(clazz, document);
-        t.document();
         return t;
     }
 
@@ -142,7 +135,7 @@ public class MongoHelper {
             for (int i = 0; i < keys.length; i++) {
                 roots[i] = Filters.eq(keys[i].getName(), keys[i].getValue());
             }
-            if (roots.length != getRootKey(clazz).size()) {
+            if (keys.length != getRootKey(clazz).size()) {
                 throw new MException("[mdb][root key not match]");
             }
             roots[keys.length] = makeMongoId(keys);

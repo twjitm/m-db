@@ -1,6 +1,5 @@
 package com.mdb.entity;
 
-import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;

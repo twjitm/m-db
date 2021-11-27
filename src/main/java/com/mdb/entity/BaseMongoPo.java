@@ -25,9 +25,6 @@ public abstract class BaseMongoPo implements MongoPo {
 
     @Override
     public Document document() {
-        if (document.size() > 0) {
-            return document;
-        }
         Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
         kv.forEach(document::put);
         return document;

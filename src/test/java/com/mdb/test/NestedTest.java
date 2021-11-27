@@ -31,14 +31,14 @@ public class NestedTest {
         //addUser();
         //addManyUsers();
         //addAddress();
-        get();
-        getAll();
-        findOne();
-        findAll();
-        findAll();
+//        get();
+//        getAll();
+//        findOne();
+//        findAll();
+//        findAll();
 
-        count();
-        //update();
+        //count();
+        update();
         //updateMany();
         //nextId();
         // delete();
@@ -120,14 +120,15 @@ public class NestedTest {
         System.out.println(list.size());
     }
 
-    public static void count() {
-        long count = MongoManager.getInstance().count(UserInfoPo.class, Query.builder().in("uid", 1, 2));
+    public static void count() throws MException {
+        long count = MongoManager.getInstance().count(UserInfoPo.class, Query.builder().in("uid", 1, 2), null, null);
         System.out.println(count);
+        long addCount = MongoManager.getInstance().count(AddressPo.class, Query.builder().and("uid", 1),Query.builder().and("pid",2),null);
+        System.out.println(addCount);
     }
 
     public static void update() throws MException {
-        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class,
-                PrimaryKey.builder("uid", 8));
+        UserInfoPo user = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
         if (user == null) {
             return;
         }

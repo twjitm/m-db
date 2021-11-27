@@ -16,7 +16,6 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
-import org.bson.RawBsonArray;
 import org.bson.conversions.Bson;
 
 import java.util.*;
@@ -124,14 +123,7 @@ public class MongoManager {
         }
         Document saveDocument = t.saveDocument();
         if (t instanceof AbstractNestedMongoPo) {
-            Bson filter = MongoHelper.deepFilter(t);
-            UpdateOptions ops = new UpdateOptions();
-            ops.upsert(true);
-            if (async) {
-                return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new UpdateOneModel<>(filter, saveDocument, ops)));
-            }
-            db.updateOne(filter, saveDocument, ops);
-            return true;
+            return _fetch((AbstractNestedMongoPo) t);
         }
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new InsertOneModel<>(saveDocument)));
@@ -139,7 +131,6 @@ public class MongoManager {
         db.insertOne(saveDocument);
         return true;
     }
-
 
     public <T extends MongoPo> boolean addMany(List<T> list) throws MException {
         BulkWriteOptions op = new BulkWriteOptions().ordered(true);
@@ -180,6 +171,13 @@ public class MongoManager {
         }
         UpdateResult result = mongoCollectionManager.getCollection(t).updateOne(t.filters(), up);
         return result.wasAcknowledged();
+    }
+
+    public <T extends AbstractNestedMongoPo> boolean update(T t) throws MException {
+        if (t == null) {
+            return false;
+        }
+        return this._fetch(t);
     }
 
     public <T extends MongoPo> boolean updateMany(List<T> list) {
@@ -243,7 +241,7 @@ public class MongoManager {
             Bson root = filters[0];
             BasicDBObject nested = (BasicDBObject) filters[1];
             List<String> nestKeys = MongoHelper.getNestedKey(clazz);
-            if (nestKeys.size() != nested.size()) {
+            if (nested != null && nestKeys.size() != nested.size()) {
                 throw new MException("[error][mdb][nested path filter not match]");
             }
             MongoIterable<Document> result = this.findNested(clazz, root, nested, null, Aggregates.limit(1));
@@ -252,9 +250,6 @@ public class MongoManager {
 
         Bson filter = parseFilters(keys);
         T t = mongoCollectionManager.getCollection(clazz).find(filter, clazz).first();
-        if (t != null) {
-            t.document();
-        }
         return t;
     }
 
@@ -280,7 +275,6 @@ public class MongoManager {
         List<T> result = new ArrayList<>();
         while (items.hasNext()) {
             T t = items.next();
-            t.document();
             result.add(t);
         }
         return result;
@@ -289,9 +283,6 @@ public class MongoManager {
     public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
         FindIterable<T> result = this.findSimple(clazz, query, QueryOptions.builder().limit(1));
         T t = result.first();
-        if (t != null) {
-            t.document();
-        }
         return t;
     }
 
@@ -301,7 +292,6 @@ public class MongoManager {
         List<T> list = new ArrayList<>();
         while (it.hasNext()) {
             T t = it.next();
-            t.document();
             list.add(t);
         }
         return list;
@@ -339,9 +329,24 @@ public class MongoManager {
         return result.getInteger("value");
     }
 
-    public <T extends MongoPo> long count(Class<T> clazz, QueryBuilder query) {
+    public <T extends AbstractMongoPo> long count(Class<T> clazz, QueryBuilder query) {
         BasicDBObject filter = (BasicDBObject) query.get();
         return mongoCollectionManager.getCollection(clazz).countDocuments(filter);
+    }
+
+    public <T extends AbstractNestedMongoPo> long count(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter, QueryBuilder nestedFilter) throws MException {
+        if (rootPathFilter == null) {
+            throw new MException("[error][mdb][query is empty]");
+        }
+        Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
+        BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
+        Bson wrapperNested = nestedPathFilter == null ? null : (BasicDBObject) nestedPathFilter.get();
+        MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, Aggregates.count());
+        Document document = result.first();
+        if (document == null) {
+            return 0;
+        }
+        return Long.parseLong(document.get("count").toString());
     }
 
 
@@ -395,6 +400,19 @@ public class MongoManager {
             result.add(MongoHelper.create(clazz, (Document) newRoot));
         }
         return result;
+    }
+
+    private <T extends AbstractNestedMongoPo> boolean _fetch(T t) {
+        MongoCollection<Document> db = mongoCollectionManager.getCollection(t);
+        Document saveDocument = t.saveDocument();
+        Bson filter = MongoHelper.deepFilter(t);
+        UpdateOptions ops = new UpdateOptions();
+        ops.upsert(true);
+        if (async) {
+            return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new UpdateOneModel<>(filter, saveDocument, ops)));
+        }
+        db.updateOne(filter, saveDocument, ops);
+        return true;
     }
 
 
