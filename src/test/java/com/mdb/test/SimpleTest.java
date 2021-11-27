@@ -20,7 +20,8 @@ public class SimpleTest {
 
     public static void main(String[] args) throws MException {
         init();
-        addBuild();
+       // addBuild();
+        //addManyBuild();
         get();
         getAll();
         findOne();
@@ -32,9 +33,11 @@ public class SimpleTest {
         List<BuildPo> list = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             BuildPo po = new BuildPo();
-            po.setUid(2049);
+            po.setUid(1);
             po.setX(i);
             po.setY(i);
+            po.setName("汤和一品" + i + "幢");
+            po.setType("商业");
             list.add(po);
         }
         MongoManager.getInstance().addMany(list);
@@ -54,7 +57,7 @@ public class SimpleTest {
      * 主键查询
      */
     public static void get() throws MException {
-        BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 7));
+        BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 2));
         System.out.println(b.getBuildId());
     }
 
@@ -65,7 +68,7 @@ public class SimpleTest {
 
 
     public static void findOne() throws MException {
-        BuildPo b = MongoManager.getInstance().findOne(BuildPo.class, Query.builder().and("uid", 1).and("build_id", 7));
+        BuildPo b = MongoManager.getInstance().findOne(BuildPo.class, Query.builder().and("uid", 1).and("build_id", 0));
         System.out.println(b.getX() + "|" + b.getY());
 
     }

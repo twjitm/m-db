@@ -141,9 +141,9 @@ public class MongoManager {
             String tickName = t.tick();
             if (!ZStringUtils.isEmpty(tickName)) {
                 long id = this.nextId(clazz);
-                ZClassUtils.setField(t, tickName, id);
+                ZClassUtils.setField(item, tickName, id);
             }
-            Document document = item.document();
+            Document document = item.saveDocument();
             if (async) {
                 mongoSyncManager.put(MongoTask.builder(item.database(), item.table(), new InsertOneModel<>(document)));
             } else {

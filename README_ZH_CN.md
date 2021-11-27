@@ -15,6 +15,63 @@
 
 ### 使用说明
 
+### 索引管理
+
+#### 一、索引维护
+通过注解@Indexed 和@CompoundIndexed 实现简单索引和联合索引的自动创建与维护，简化mongodb 索引的使用和维护
+
+  ```java
+/**
+ * 联合索引：多个字段组合索引构成
+ *
+ */
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface CompoundIndexed {
+
+    Indexed[] value();
+
+    int order() default -1;
+
+    boolean unique() default true;
+}
+
+/**
+ * 普通索引：为某个字段建立索引
+ */
+@Target({ElementType.ANNOTATION_TYPE, ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Indexed {
+
+    boolean unique() default false;
+
+    String name();
+
+    int order() default -1;
+}
+
+/**
+ * 失效时间索引：本document 具有时效性
+ */
+@Target({ElementType.ANNOTATION_TYPE, ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ExpireIndex {
+
+    boolean unique() default false;
+
+    String name() default "";
+
+    int order() default -1;
+}
+
+
+```
+详细使用见IndexTest中，当给每个document 的po类上或字段标记索引时，则索引会进行创建。
+
+![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/index.jpg)
+
+
 #### 一、 简单文档使用
 
 简单文档：文档结构简单，字段类型基本为基础数据类型字段。\
@@ -67,6 +124,9 @@ public class BuildPo extends AbstractMongoPo {
         MongoManager.getInstance().addMany(list);
     }
 ```
+例如添加之后的数据在mongodb中可以查询到 \
+<img src="https://github.com/twjitm/m-db-test/blob/main/images/build.jpg?raw=true" width="100%" height="80%">
+
 ##### 1.4 查询
 
  查询方式可分为两种，一种是利用@mongoID注解的主键进行查询，一种是通过某个字段进行find 查询

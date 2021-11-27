@@ -85,12 +85,16 @@ public class MongoHelper {
 
     // 1_3
     public static <T extends MongoPo> Bson makeMongoId(List<MongoId> ids, T obj) {
+        return Filters.eq("_id", makeMongoIdVal(ids, obj));
+    }
+
+    public static <T extends MongoPo> String makeMongoIdVal(List<MongoId> ids, T obj) {
         Map<String, ?> data = obj.data();
         StringBuilder val = new StringBuilder();
         for (MongoId id : ids) {
             val.append("_").append(data.get(id.name()).toString());
         }
-        return Filters.eq("_id", val.substring(1));
+        return val.substring(1);
     }
 
     public static <T extends MongoPo> Bson makeMongoId(PrimaryKey... keys) {
