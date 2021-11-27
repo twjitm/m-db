@@ -72,11 +72,11 @@ public @interface ExpireIndex {
 ![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/index.jpg)
 
 
-#### 一、 简单文档使用
+#### 二、 简单文档使用
 
 简单文档：文档结构简单，字段类型基本为基础数据类型字段。\
 使用步骤：
-###### 1.1 :组装实体类PO对象
+###### 2.1 :组装实体类PO对象
 ``` java
 /**
  * 一个简单文档
@@ -98,7 +98,7 @@ public class BuildPo extends AbstractMongoPo {
 其中通过注解@MongoDocument 数据库名字，指定表名，注解@CompoundIndex 指定用那几个字段作为联合索引
 也可以用@Indexed 来单独指定索引,使用@MongoId来指定主键，由于mongodb无法实现类似mysql自增，索引采用此注解来来是否指定主键自增
 
-###### 1.2 添加数据
+###### 2.2 添加数据
 ``` java
   public static void addBuild() throws MException {
         BuildPo buildPo = new BuildPo();
@@ -110,7 +110,7 @@ public class BuildPo extends AbstractMongoPo {
         MongoManager.getInstance().add(buildPo);
     }
 ``` 
-###### 1.3 批量添加
+###### 2.3 批量添加
 ```java 
     private static void addManyBuild() throws MException {
         List<BuildPo> list = new ArrayList<>();
@@ -127,7 +127,7 @@ public class BuildPo extends AbstractMongoPo {
 例如添加之后的数据在mongodb中可以查询到 \
 <img src="https://github.com/twjitm/m-db-test/blob/main/images/build.jpg?raw=true" width="100%" height="80%">
 
-##### 1.4 查询
+##### 2.4 查询
 
  查询方式可分为两种，一种是利用@mongoID注解的主键进行查询，一种是通过某个字段进行find 查询
  
@@ -158,7 +158,21 @@ public class BuildPo extends AbstractMongoPo {
 
     }
 ```
-##### 1.4 修改
+##### 2.5 修改
+
+修改一个文档中的某个字段，使用方式如下，例如将查询出来的build 名字进行修改
+```java
+
+    public static void update() throws MException {
+        BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 2));
+        b.setName("new name build");
+        MongoManager.getInstance().update(b);
+    }
+
+```
+![](https://github.com/twjitm/m-db-test/blob/main/images/update.jpg?raw=true)
+
+
 
 
 
