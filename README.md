@@ -1,4 +1,7 @@
+[![Build Status](https://travis-ci.org/emirpasic/gods.svg)](https://https://github.com/twjitm/)  [![PyPI](https://img.shields.io/pypi/l/Django.svg?maxAge=2592000)](https://github.com/emirpasic/gods/blob/master/LICENSE)
+
 # m-db
+[English](https://github.com/twjitm/m-db/blob/master/README.md) [简体中文](https://github.com/twjitm/m-db/blob/master/README_ZH_CN.md)
 ### abstract
 ##### what is this?
 Welcome to use this project.
@@ -14,14 +17,70 @@ This project is based on the mongodb driver package development, which greatly s
 
 ### Instructions
 
-#### 1. simple documents
+#### 1、indexed manager
+Simple and combined indexes can be automatically created and maintained by annotating @Indexed and @compoundIndexed, simplifying the use and maintenance of mongodb indexes
+
+```java
+/**
+ * compound indexed：Multiple field combination index composition
+ *
+ */
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface CompoundIndexed {
+
+    Indexed[] value();
+
+    int order() default -1;
+
+    boolean unique() default true;
+}
+
+/**
+ * Normal index: Creates an index for a field
+ */
+@Target({ElementType.ANNOTATION_TYPE, ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Indexed {
+
+    boolean unique() default false;
+
+    String name();
+
+    int order() default -1;
+}
+
+/**
+ * Expiration time index: This document is time-sensitive
+ */
+@Target({ElementType.ANNOTATION_TYPE, ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ExpireIndex {
+
+    boolean unique() default false;
+
+    String name() default "";
+
+    int order() default -1;
+}
+
+
+```
+The detailed use of IndexTest is shown in IndexTest, where the index is created when the index is marked on the Po class or field of each document.
+
+![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/index.jpg)
+
+
+
+#### 2. simple documents
 
 Simple document: The document structure is simple, and the field type is basic data type field. \
 Use steps:
-###### 1.1: Assemble entity class PO objects
+###### 2.1: Assemble entity class PO objects
 ``` java
 /**
- * 一个简单文档
+ * A simple document
  */
 @MongoDocument(table = "user_build")
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "build_id")})
@@ -67,6 +126,9 @@ to use as the joint index. You can also use @indexed to specify a separate index
         MongoManager.getInstance().addMany(list);
     }
 ```
+For example, the added data can be queried in mongodb
+<img src="https://github.com/twjitm/m-db-test/blob/main/images/build.jpg?raw=true" width="100%" height="80%">
+
 ##### 1.4 find
 
 Query can be divided into two ways, one is to use the @mongoid annotation 'get' primary key to query,
