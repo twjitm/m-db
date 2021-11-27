@@ -50,6 +50,7 @@ public class MongoHelper {
 
     public static <T extends MongoPo> T create(Class<T> clazz, Document document) {
         T t = ZClassUtils.create(clazz, document);
+        t.document();
         return t;
     }
 

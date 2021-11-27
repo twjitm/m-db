@@ -141,6 +141,24 @@ public class ZClassUtils {
         return t;
     }
 
+    public static <T> T create(T t, Map<String, ?> values) {
+        if (values == null) {
+            return t;
+        }
+        T finalT = t;
+        values.forEach((k, v) -> {
+                    String fieldName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, k);
+                    try {
+                        Field field = finalT.getClass().getDeclaredField(fieldName);
+                        field.setAccessible(true);
+                        field.set(finalT, v);
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                });
+        return finalT;
+    }
+
     public static <T> void setField(T t, String fieldName, Object value) throws MException {
         String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName);
         Field field;
@@ -226,6 +244,17 @@ public class ZClassUtils {
             }
         }
         return null;
+    }
+
+    public static boolean isField(Object obj, String fieldName) {
+        String name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, fieldName);
+        Field[] list = getAllFields(obj);
+        for (Field f : list) {
+            if (f.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean readOnlyField(Object obj, String fieldName) {

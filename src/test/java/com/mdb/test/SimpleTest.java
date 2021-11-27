@@ -20,12 +20,15 @@ public class SimpleTest {
 
     public static void main(String[] args) throws MException {
         init();
-       // addBuild();
+        // addBuild();
         //addManyBuild();
-        get();
-        getAll();
-        findOne();
-        findAll();
+//        get();
+//        getAll();
+//        findOne();
+//        findAll();
+//
+        update();
+
     }
 
 
@@ -79,17 +82,17 @@ public class SimpleTest {
 
     }
 
+    public static void update() throws MException {
+        BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 2));
+        b.setName("new name build");
+        MongoManager.getInstance().update(b);
+    }
+
 
     static MongoManager mongoManager;
 
     private static void init() {
         mongoManager = new MongoManager("127.0.0.1:27017", false);
-    }
-
-    public static void createIndex() {
-        MongoManager.getInstance().createIndex(UserInfoPo.class);
-        // MongoManager.getInstance().createIndex(BuildPo.class);
-        MongoManager.getInstance().createIndex(AddressPo.class);
     }
 
 

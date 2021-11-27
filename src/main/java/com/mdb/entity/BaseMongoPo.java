@@ -2,10 +2,7 @@ package com.mdb.entity;
 
 import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
-import com.mdb.enums.index.CompoundIndexed;
-import com.mdb.enums.index.Indexed;
 import com.mdb.exception.MException;
-import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -25,7 +22,10 @@ public abstract class BaseMongoPo implements MongoPo {
 
     @Override
     public Document document() {
-        Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
+        if (document.size() > 0) {
+            return document;
+        }
+        Map<String, ?> kv = data();
         kv.forEach(document::put);
         return document;
     }
@@ -37,9 +37,10 @@ public abstract class BaseMongoPo implements MongoPo {
 
     @Override
     public Document modify() throws MException {
-        Map<String, Object> kv = ZClassUtils.getClassFiledKv(this);
+        Map<String, ?> kv = data();
         Document modify = new Document();
-        for (Map.Entry<String, Object> entry : kv.entrySet()) {
+        Document document = document();
+        for (Map.Entry<String, ?> entry : kv.entrySet()) {
             String k = entry.getKey();
             Object v = entry.getValue();
             Object ov = document.get(k);

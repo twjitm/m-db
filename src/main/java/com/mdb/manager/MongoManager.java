@@ -245,12 +245,11 @@ public class MongoManager {
                 throw new MException("[error][mdb][nested path filter not match]");
             }
             MongoIterable<Document> result = this.findNested(clazz, root, nested, null, Aggregates.limit(1));
-            return parseOneResult(clazz, result);
+            return parseOneNestedResult(clazz, result);
         }
-
         Bson filter = parseFilters(keys);
-        T t = mongoCollectionManager.getCollection(clazz).find(filter, clazz).first();
-        return t;
+        FindIterable<T> findIterable = mongoCollectionManager.getCollection(clazz).find(filter, clazz);
+        return parseOneResult(findIterable);
     }
 
     public <T extends MongoPo> List<T> getAll(Class<T> clazz, PrimaryKey... keys) throws MException {
@@ -261,7 +260,7 @@ public class MongoManager {
         if (MongoHelper.isNested(clazz)) {
             Bson[] filters = MongoHelper.adaptPrimaryKey(clazz, keys);
             MongoIterable<Document> result = this.findNested(clazz, filters[0], filters[1], null, null);
-            return parseAllResult(clazz, result);
+            return parseAllNestedResult(clazz, result);
         }
         List<Bson> filters = new ArrayList<>();
         for (PrimaryKey key : keys) {
@@ -270,31 +269,18 @@ public class MongoManager {
         }
         Bson filter = Filters.and(filters);
         MongoCollection<Document> db = mongoCollectionManager.getCollection(clazz);
-
-        MongoCursor<T> items = db.find(filter, clazz).iterator();
-        List<T> result = new ArrayList<>();
-        while (items.hasNext()) {
-            T t = items.next();
-            result.add(t);
-        }
-        return result;
+        FindIterable<T> findIterable = db.find(filter, clazz);
+        return parseAllResult(findIterable);
     }
 
     public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
         FindIterable<T> result = this.findSimple(clazz, query, QueryOptions.builder().limit(1));
-        T t = result.first();
-        return t;
+        return parseOneResult(result);
     }
 
     public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
         FindIterable<T> result = this.findSimple(clazz, query, options);
-        MongoCursor<T> it = result.iterator();
-        List<T> list = new ArrayList<>();
-        while (it.hasNext()) {
-            T t = it.next();
-            list.add(t);
-        }
-        return list;
+        return parseAllResult(result);
     }
 
     private <T extends AbstractMongoPo> FindIterable<T> findSimple(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
@@ -362,7 +348,7 @@ public class MongoManager {
         BasicDBObject bson = (BasicDBObject) rootPathFilter.get();
         Bson wrapperNested = nestedPathFilter == null ? null : (BasicDBObject) nestedPathFilter.get();
         MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, Aggregates.limit(1));
-        return parseOneResult(clazz, result);
+        return parseOneNestedResult(clazz, result);
     }
 
     public <T extends AbstractNestedMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter,
@@ -375,11 +361,30 @@ public class MongoManager {
         Bson nested = nestedFilter == null ? null : (Bson) nestedFilter.get();
         Bson op = options == null ? null : options.toAggregates();
         MongoIterable<Document> result = findNested(clazz, bson, wrapperNested, nested, op);
-        return parseAllResult(clazz, result);
+        return parseAllNestedResult(clazz, result);
     }
 
 
-    private <T extends MongoPo> T parseOneResult(Class<T> clazz, MongoIterable<Document> result) {
+    private <T extends MongoPo> T parseOneResult(FindIterable<T> findIterable) {
+        T t = findIterable.first();
+        if (t == null) {
+            return null;
+        }
+        t.document();
+        return t;
+    }
+
+    private <T extends MongoPo> List<T> parseAllResult(FindIterable<T> findIterable) {
+        MongoCursor<T> items = findIterable.iterator();
+        List<T> result = new ArrayList<>();
+        while (items.hasNext()) {
+            T t = items.next();
+            t.document();
+            result.add(t);
+        }
+        return result;
+    }
+    private <T extends MongoPo> T parseOneNestedResult(Class<T> clazz, MongoIterable<Document> result) {
         Document document = result.first();
         if (document == null || document.size() == 0) {
             return null;
@@ -388,7 +393,7 @@ public class MongoManager {
         return MongoHelper.create(clazz, newRoot);
     }
 
-    private <T extends MongoPo> List<T> parseAllResult(Class<T> clazz, MongoIterable<Document> iterable) {
+    private <T extends MongoPo> List<T> parseAllNestedResult(Class<T> clazz, MongoIterable<Document> iterable) {
         MongoCursor<Document> iterator = iterable.iterator();
         List<T> result = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -397,7 +402,8 @@ public class MongoManager {
             if (newRoot == null || newRoot.size() == 0) {
                 continue;
             }
-            result.add(MongoHelper.create(clazz, (Document) newRoot));
+            T t = MongoHelper.create(clazz, newRoot);
+            result.add(t);
         }
         return result;
     }
