@@ -1,6 +1,5 @@
 package com.mdb.entity;
 
-import com.mdb.enums.MongoId;
 import com.mdb.enums.index.CompoundIndexed;
 import com.mdb.enums.index.Indexed;
 import com.mdb.helper.MongoHelper;
@@ -20,22 +19,11 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
 
     @Override
     public Document saveDocument() {
-        Class<? extends NestedMongoPo> clazz = this.getClass();
         Document document = this.document();
-        String nested = MongoHelper.nested(clazz);
         Document root = new Document();
         Document nest = new Document();
-        List<MongoId> ids = this.mongoIds();
-        if (!MongoHelper.isNestedBase(clazz)) {
-            StringBuilder idStr = new StringBuilder();
-            Map<String, ?> data = data();
-            for (MongoId id : ids) {
-                idStr.append(".").append(data.get(id.name()));
-            }
-            nest.put(nested + idStr, document);
-        } else {
-            nest.put(nested, document);
-        }
+        String nested = MongoHelper.nestedPathVal(this);
+        nest.put(nested, document);
         root.put("$set", nest);
         return root;
     }
@@ -43,6 +31,13 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
     @Override
     public boolean checkPrimary() {
         return false;
+    }
+
+    @Override
+    public Document document() {
+        Map<String, ?> kv = data();
+        kv.forEach(document::put);
+        return document;
     }
 
     @Override

@@ -57,9 +57,9 @@ public class MongoHelper {
     //全路径
     public static <T extends MongoPo> Bson deepFilter(T obj) {
 
-        List<MongoId> ids = getMongoIds(obj.getClass());
-
-        if (!isNestedBase(obj.getClass())) {
+        Class<? extends MongoPo> clazz = obj.getClass();
+        List<MongoId> ids = getMongoIds(clazz);
+        if (!isNestedBase(clazz)) {
             List<MongoId> rootIds = getMongoIds(getRooterClass(obj));
             Bson rootFilter = wrapperMongoIds(rootIds, obj);
             Bson nested = Filters.exists(nestedPath(ids, obj), false);
@@ -98,6 +98,26 @@ public class MongoHelper {
         return val.substring(1);
     }
 
+    public static <T extends NestedMongoPo> String nestedPathVal(T obj) {
+        Class<? extends NestedMongoPo> clazz = obj.getClass();
+        String nested = MongoHelper.nested(clazz);
+        if (MongoHelper.isNestedBase(clazz)) {
+            return nested;
+        }
+        Map<String, ?> data = obj.data();
+        return nested + parse(clazz, data);
+    }
+
+    private static <T extends NestedMongoPo> String parse(Class<T> clazz, Map data) {
+        StringBuilder val = new StringBuilder();
+        List<MongoId> ids = getNestedMongoIds(clazz);
+        for (MongoId id : ids) {
+            val.append(".").append(data.get(id.name()).toString());
+        }
+        return val.toString();
+    }
+
+
     public static <T extends MongoPo> Bson makeMongoId(PrimaryKey... keys) {
         StringBuilder val = new StringBuilder();
         for (PrimaryKey key : keys) {
@@ -107,7 +127,9 @@ public class MongoHelper {
     }
 
     public static <T extends MongoPo> String nestedPath(List<MongoId> ids, T t) {
-        if (isNestedBase(t.getClass())) {
+        Class<? extends MongoPo> clazz = t.getClass();
+
+        if (isNestedBase(clazz)) {
             return "";
         }
         Map<String, ?> data = t.data();
@@ -115,7 +137,7 @@ public class MongoHelper {
         for (MongoId item : ids) {
             and.append(item.name()).append("=").append(data.get(item.name()));
         }
-        return nested(t.getClass()) + "." + and.substring(1);
+        return nested(clazz) + "." + and;
     }
 
     private static <T extends MongoPo> Bson wrapperMongoIds(List<MongoId> ids, T obj) {
@@ -130,8 +152,6 @@ public class MongoHelper {
 
     /**
      * [rootFilter,nestedFilter]
-     * <p>
-     * todo
      */
     public static <T extends MongoPo> Bson[] adaptPrimaryKey(Class<T> clazz, PrimaryKey[] keys) throws MException {
         if (isNestedBase(clazz)) {
@@ -172,7 +192,7 @@ public class MongoHelper {
             nestedVal.append(".").append(entry.getValue());
         }
         MongoDocument doc = mongoDocument(clazz);
-        return Aggregates.project((Filters.eq(doc.nested(), "$" + doc.nested() + "." + nestedVal.substring(1))));
+        return Aggregates.project((Filters.eq(doc.nested(), "$" + doc.nested() + nestedVal)));
     }
 
     public static <T extends MongoPo> Bson wrapperNestedFilter(Class<T> clazz, Map<String, Object> map) throws MException {
@@ -239,19 +259,17 @@ public class MongoHelper {
         return list;
     }
 
-//    public static <T extends MongoPo> void build(Class<T> clazz,) {
-//        if (!NestedMongoPo.class.isAssignableFrom(clazz)) {
-//            return;
-//        }
-//        MongoDocument base = mongoDocument(clazz);
-//        Class<? extends NestedMongoPo> rooter = base.rooter();
-//
-//        //base nested class
-//        if (rooter.isAssignableFrom(AbstractNestedMongoPo.class)) {
-//
-//        }
-//
-//
-//    }
+    public static <T extends MongoPo> List<MongoId> getNestedMongoIds(Class<T> clazz) {
+        List<MongoId> list = new ArrayList<>();
+        List<MongoId> ids = getMongoIds(clazz);
+
+        for (MongoId id :
+                ids) {
+            if (!isMongoRootIdKey(clazz, id.name())) {
+                list.add(id);
+            }
+        }
+        return list;
+    }
 
 }

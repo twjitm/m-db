@@ -22,10 +22,10 @@ public class SimpleTest {
         init();
         // addBuild();
         //addManyBuild();
-//        get();
-//        getAll();
-//        findOne();
-//        findAll();
+        get();
+        getAll();
+        findOne();
+        findAll();
 //
         update();
 

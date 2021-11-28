@@ -30,18 +30,25 @@ public class MongoManager {
      */
     private boolean async;
 
-    private final static MongoManager instance = new MongoManager();
-
     public static MongoManager getInstance() {
-        return instance;
+        return Mongo.MONGO.getInstance();
     }
 
+    enum Mongo {
+        MONGO;
+        Mongo() {
+            manager = new MongoManager();
+        }
+        private final MongoManager manager;
+        public MongoManager getInstance() {
+            return manager;
+        }
+    }
 
     public MongoManager() {
         this.async = false;
         String DEFAULT_URL = "127.0.0.1:27017";
         initClient(DEFAULT_URL);
-
     }
 
     public MongoManager(String url) {
@@ -384,6 +391,7 @@ public class MongoManager {
         }
         return result;
     }
+
     private <T extends MongoPo> T parseOneNestedResult(Class<T> clazz, MongoIterable<Document> result) {
         Document document = result.first();
         if (document == null || document.size() == 0) {

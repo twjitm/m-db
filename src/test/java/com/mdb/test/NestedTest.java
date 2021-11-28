@@ -15,6 +15,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import javafx.scene.media.MediaException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -38,7 +39,8 @@ public class NestedTest {
 //        findAll();
 
         //count();
-        update();
+        //update();
+        updateAddress();
         //updateMany();
         //nextId();
         // delete();
@@ -123,7 +125,7 @@ public class NestedTest {
     public static void count() throws MException {
         long count = MongoManager.getInstance().count(UserInfoPo.class, Query.builder().in("uid", 1, 2), null, null);
         System.out.println(count);
-        long addCount = MongoManager.getInstance().count(AddressPo.class, Query.builder().and("uid", 1),Query.builder().and("pid",2),null);
+        long addCount = MongoManager.getInstance().count(AddressPo.class, Query.builder().and("uid", 1), Query.builder().and("pid", 2), null);
         System.out.println(addCount);
     }
 
@@ -137,6 +139,13 @@ public class NestedTest {
         boolean successful = MongoManager.getInstance().update(user);
 
     }
+
+    public static void updateAddress() throws MException {
+        AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2), PrimaryKey.builder("aid", 11));
+        address.setAddress("shanghai1");
+        MongoManager.getInstance().update(address);
+    }
+
 
     public static void updateMany() throws MException {
 

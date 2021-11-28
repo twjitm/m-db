@@ -15,7 +15,7 @@ import java.util.Objects;
 
 public abstract class BaseMongoPo implements MongoPo {
 
-    private final Document document = new Document();
+    protected final Document document = new Document();
 
     public BaseMongoPo() {
     }
