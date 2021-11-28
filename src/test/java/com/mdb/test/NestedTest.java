@@ -51,7 +51,7 @@ public class NestedTest {
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager("127.0.0.1:27017", false);
+        mongoManager = new MongoManager("127.0.0.1:27017", true);
     }
 
     public static void addUser() throws MException {

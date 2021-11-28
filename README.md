@@ -163,5 +163,42 @@ Query can be divided into two ways, one is to use the @mongoid annotation 'get' 
 ```
 ##### 1.4 update
 
+Modify a field in a document by, for example, modifying the query 'build' name
+```java
+
+    public static void update() throws MException {
+        BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 2));
+        b.setName("new name build");
+        MongoManager.getInstance().update(b);
+    }
+
+```
+![](https://github.com/twjitm/m-db-test/blob/main/images/update.jpg?raw=true)
+
+### 三、Asynchronous: Write and update
+
+The system supports asynchronous operations. Encapsulate the operation as a task and add it to an asynchronous queue,
+ from which the database execution thread retrieves the operation task.
+ 
+#### 3.1 Enabling asynchronous operations
+```java
+ private static void init() {
+        mongoManager = new MongoManager("127.0.0.1:27017", true);
+    }
+
+```
+
+### 3.2 Principle of asynchronous operation
+```java
+
+ private void execute() {
+        if (pool.isEmpty()) {
+            return;
+        }
+        pool.forEach((k, v) -> collectionManager.getCollection(k).bulkWrite(v));
+        pool.clear();
+    }
+```
+
 
 

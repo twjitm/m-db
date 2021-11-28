@@ -1,5 +1,5 @@
 # m-db
-
+[English](https://github.com/twjitm/m-db/blob/master/README.md) [简体中文](https://github.com/twjitm/m-db/blob/master/README_ZH_CN.md)
 ### 简介
 ##### 这是个什么？
 欢迎使用本项目。
@@ -12,6 +12,40 @@
 2：内嵌文档映射 \
 3：异步存储。批量存储 \
 4：索引管理
+
+<table>
+<tr>
+<th>主要功能</th>
+<th>是否支持</th>
+<th>是否异步</th>
+</tr>
+<tr>
+<tr><td >读操作</td>
+<td >是</td>
+<td >否</td>
+</tr>
+<tr>
+    <td>写操作</td>
+    <td >是</td>
+    <td >是</td>
+</tr>
+<tr>
+    <td>批量读</td>
+    <td >是</td>
+    <td >否</td>
+</tr>
+<tr>
+    <td>批量写</td>
+    <td >是</td>
+    <td >是</td>
+</tr>
+<tr>
+    <td>索引维护</td>
+    <td >是</td>
+    <td >否</td>
+</tr>
+</table>
+
 
 ### 使用说明
 
@@ -171,6 +205,31 @@ public class BuildPo extends AbstractMongoPo {
 
 ```
 ![](https://github.com/twjitm/m-db-test/blob/main/images/update.jpg?raw=true)
+
+### 三、异步：写改
+
+系统支持异步操作。将操作封装为一个task，添加到异步队列中，数据库执行线程会从队列中取得操作任务。
+
+#### 3.1 开启异步操作
+```java
+ private static void init() {
+        mongoManager = new MongoManager("127.0.0.1:27017", true);
+    }
+
+```
+
+### 3.2 异步操作原理
+```java
+
+ private void execute() {
+        if (pool.isEmpty()) {
+            return;
+        }
+        pool.forEach((k, v) -> collectionManager.getCollection(k).bulkWrite(v));
+        pool.clear();
+    }
+```
+
 
 
 
