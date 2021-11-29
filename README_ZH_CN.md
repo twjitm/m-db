@@ -111,6 +111,15 @@ public @interface ExpireIndex {
 简单文档：文档结构简单，字段类型基本为基础数据类型字段。\
 使用步骤：
 ###### 2.1 :组装实体类PO对象
+
+
+<img src="https://raw.githubusercontent.com/twjitm/m-db-test/main/images/1638165371993.jpg" width="80%" height="80%">
+简单文档结构 \
+
+嵌入式文档结构 \
+<img src="https://github.com/twjitm/m-db-test/blob/main/images/1638165334873.jpg?raw=true" width="80%" height="80%">
+
+
 ``` java
 /**
  * 一个简单文档

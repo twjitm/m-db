@@ -73,6 +73,14 @@ The detailed use of IndexTest is shown in IndexTest, where the index is created 
 
 
 
+<img src="https://raw.githubusercontent.com/twjitm/m-db-test/main/images/1638165371993.jpg" width="80%" height="80%">
+simple document \
+
+nested document \
+<img src="https://github.com/twjitm/m-db-test/blob/main/images/1638165334873.jpg?raw=true" width="80%" height="80%">
+
+
+
 #### 2. simple documents
 
 Simple document: The document structure is simple, and the field type is basic data type field. \
