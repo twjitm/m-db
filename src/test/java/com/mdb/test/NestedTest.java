@@ -31,7 +31,7 @@ public class NestedTest {
         //findTest(AddressPo.class);
         //addUser();
         //addManyUsers();
-        //addAddress();
+        addAddress();
 //        get();
 //        getAll();
 //        findOne();
@@ -40,7 +40,7 @@ public class NestedTest {
 
         //count();
         //update();
-        updateAddress();
+       // updateAddress();
         //updateMany();
         //nextId();
         // delete();
@@ -51,11 +51,11 @@ public class NestedTest {
     static MongoManager mongoManager;
 
     private static void init() {
-        mongoManager = new MongoManager("127.0.0.1:27017", true);
+        mongoManager = new MongoManager("127.0.0.1:27017", false);
     }
 
     public static void addUser() throws MException {
-        for (int i = 1; i < 6; i++) {
+        for (int i = 8; i < 10; i++) {
             UserInfoPo user = new UserInfoPo();
             user.setAge((byte) 26);
             user.setName("twj_" + i);
@@ -89,17 +89,17 @@ public class NestedTest {
     public static void addAddress() throws MException {
         for (int i = 1; i < 6; i++) {
             AddressPo addressPo = new AddressPo();
-            addressPo.setAddress("beijing" + i);
-            addressPo.setUid(1);
-            addressPo.setPid(3);
+            addressPo.setAddress("shagnhai" + i);
+            addressPo.setUid(2);
+            addressPo.setPid(2);
             MongoManager.getInstance().add(addressPo);
         }
     }
 
 
     public static void get() throws MException {
-//        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
-//        System.out.println(userInfoPo.toString());
+        UserInfoPo userInfoPo = MongoManager.getInstance().get(UserInfoPo.class, PrimaryKey.builder("uid", 1));
+        System.out.println(userInfoPo.toString());
         AddressPo address = MongoManager.getInstance().get(AddressPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("pid", 2), PrimaryKey.builder("aid", 11));
 
         System.out.println(address.toString());
@@ -118,7 +118,7 @@ public class NestedTest {
     }
 
     public static void findAll() throws MException {//Query.builder().and("address", "beijing2")
-        List<AddressPo> list = MongoManager.getInstance().findAll(AddressPo.class, Query.builder().and("uid", 1), Query.builder().and("pid", 2), Query.builder().and("address", "beijing2"), null);
+        List<AddressPo> list = MongoManager.getInstance().findAll(AddressPo.class, Query.builder().and("uid", 1), Query.builder().and("pid", 2), null, null);
         System.out.println(list.size());
     }
 
@@ -183,7 +183,6 @@ public class NestedTest {
 //        Bson nestedFilter = Filters.eq("aid", 11);
 //        Bson nextedMatch = Aggregates.match(nestedFilter);
 
-        boolean isBase = MongoHelper.isNestedBase(clazz);
         List<Bson> pipeline = new ArrayList<>();
         Bson rootMatch = Aggregates.match(rootFilter);
         pipeline.add(rootMatch);
@@ -191,7 +190,7 @@ public class NestedTest {
         Bson nestedProject = Aggregates.project(eq(nestedName, "$" + nestedName + "." + 11));
         // pipeline.add(nestedProject);
 
-        if (!isBase) {
+        if (false) {
             Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
             Bson input = Filters.eq("input", objectToArray);
             Bson in = Filters.eq("in", "$$this.v");

@@ -36,10 +36,13 @@ public class MongoManager {
 
     enum Mongo {
         MONGO;
+
         Mongo() {
             manager = new MongoManager();
         }
+
         private final MongoManager manager;
+
         public MongoManager getInstance() {
             return manager;
         }
@@ -128,10 +131,10 @@ public class MongoManager {
             long id = this.nextId(clazz);
             ZClassUtils.setField(t, tickName, id);
         }
-        Document saveDocument = t.saveDocument();
         if (t instanceof AbstractNestedMongoPo) {
             return _fetch((AbstractNestedMongoPo) t);
         }
+        Document saveDocument = t.saveDocument();
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(t.database(), t.table(), new InsertOneModel<>(saveDocument)));
         }
@@ -432,7 +435,6 @@ public class MongoManager {
 
     private <E extends MongoPo> MongoIterable<Document> findNested(Class<E> clazz, Bson rootPath, Bson nestedPath, Bson nested, Bson options) throws MException {
 
-        boolean isBase = MongoHelper.isNestedBase(clazz);
         String nestedName = MongoHelper.nested(clazz);
         List<Bson> pipeline = new ArrayList<>();
         if (rootPath != null) {
@@ -448,7 +450,7 @@ public class MongoManager {
         }
         List<String> nestKeyList = MongoHelper.getNestedKey(clazz);
         int size = nestKeyList.size() - deep;
-        if (!isBase && size > 0) {
+        if (size > 0) {
             for (int i = 0; i < size; i++) {
                 Bson objectToArray = Filters.eq("$objectToArray", "$" + nestedName);
                 Bson input = Filters.eq("input", objectToArray);

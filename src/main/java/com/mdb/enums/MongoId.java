@@ -31,4 +31,9 @@ public @interface MongoId {
      */
     int order() default 0;
 
+    /**
+     * 是否为 root key
+     */
+    boolean root();
+
 }

@@ -19,7 +19,7 @@ abstract public class AbstractMongoPo extends BaseMongoPo {
     @Override
     public Document saveDocument() {
         Document document = this.document();
-        document.put("_id", MongoHelper.makeMongoIdVal(mongoIds(),this));
+        document.put("_id", MongoHelper.makeMongoIdVal(this));
         return document;
     }
 

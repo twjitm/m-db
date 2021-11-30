@@ -1,8 +1,5 @@
 package com.mdb.enums;
 
-import com.mdb.entity.AbstractNestedMongoPo;
-import com.mdb.entity.MongoPo;
-import com.mdb.entity.NestedMongoPo;
 
 import java.lang.annotation.*;
 
@@ -13,8 +10,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface MongoDocument {
-
-    Class<? extends NestedMongoPo> rooter() default AbstractNestedMongoPo.class;
 
     /**
      * 获取数据库名字

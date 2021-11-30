@@ -9,7 +9,7 @@ import com.mdb.enums.index.Indexed;
 public class TickId extends AbstractMongoPo {
 
     @Indexed(unique = true, name = "key")
-    @MongoId(name = "key")
+    @MongoId(name = "key", root = true)
     private String key;
 
     private long value;

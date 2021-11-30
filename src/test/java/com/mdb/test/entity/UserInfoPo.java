@@ -11,7 +11,7 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 public class UserInfoPo extends AbstractNestedMongoPo {
 
     @Indexed(name = "uid", unique = true)
-    @MongoId(name = "uid", tick = true)
+    @MongoId(name = "uid", tick = true, root = true)
     private long uid;
 
     @Indexed(name = "name", unique = true)

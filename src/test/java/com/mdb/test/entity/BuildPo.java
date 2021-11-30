@@ -14,9 +14,9 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 @CompoundIndexed(value = {@Indexed(name = "uid"), @Indexed(name = "build_id")})
 public class BuildPo extends AbstractMongoPo {
 
-    @MongoId(name = "uid")
+    @MongoId(name = "uid", root = true)
     private long uid;
-    @MongoId(name = "build_id", tick = true)
+    @MongoId(name = "build_id", tick = true, root = true)
     @BsonProperty("build_id")
     private long buildId;
     private int x;
