@@ -4,7 +4,7 @@ import com.mdb.entity.AbstractNestedMongoPo;
 import com.mdb.enums.MongoDocument;
 import com.mdb.enums.MongoId;
 
-@MongoDocument(database = "mdb", table = "user_info", nested = "address")
+@MongoDocument(database = "mdb", table = "user_info", nested = "city")
 public class CityPo extends AbstractNestedMongoPo {
 
     @MongoId(name = "uid", root = true)
@@ -54,5 +54,16 @@ public class CityPo extends AbstractNestedMongoPo {
 
     public void setLevel(int level) {
         this.level = level;
+    }
+
+    @Override
+    public String toString() {
+        return "CityPo{" +
+                "uid=" + uid +
+                ", name='" + name + '\'' +
+                ", x=" + x +
+                ", y=" + y +
+                ", level=" + level +
+                '}';
     }
 }

@@ -8,8 +8,7 @@ import com.mdb.exception.MException;
 import com.mdb.helper.MongoHelper;
 import com.mdb.manager.MongoCollectionManager;
 import com.mdb.manager.MongoManager;
-import com.mdb.test.entity.AddressPo;
-import com.mdb.test.entity.UserInfoPo;
+import com.mdb.test.entity.*;
 import com.mongodb.QueryBuilder;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoIterable;
@@ -31,7 +30,11 @@ public class NestedTest {
         //findTest(AddressPo.class);
         //addUser();
         //addManyUsers();
-        addAddress();
+        //addAddress();
+        //addCity();
+        //getCity();
+        //addCat();
+        getCat();
 //        get();
 //        getAll();
 //        findOne();
@@ -40,7 +43,7 @@ public class NestedTest {
 
         //count();
         //update();
-       // updateAddress();
+        // updateAddress();
         //updateMany();
         //nextId();
         // delete();
@@ -68,6 +71,49 @@ public class NestedTest {
         }
     }
 
+    public static void addCity() throws MException {
+        CityPo cityPo = new CityPo();
+        cityPo.setUid(2);
+        cityPo.setLevel(3);
+        cityPo.setName("大城堡");
+        cityPo.setX(1);
+        cityPo.setY(2);
+        MongoManager.getInstance().add(cityPo);
+    }
+
+
+    public static void addCat() throws MException {
+
+        Cat cat = new Cat();
+        cat.setUid(2);
+        List<Dog> dogList = new ArrayList<>();
+        Dog d1 = new Dog();
+        cat.setName("tom");
+        d1.setAge(2);
+        d1.setName("skp");
+        Dog d2 = new Dog();
+        d2.setAge(4);
+        d2.setName("skp1");
+        dogList.add(d1);
+        dogList.add(d2);
+        cat.setFriend(dogList);
+        MongoManager.getInstance().add(cat);
+    }
+
+    public static void getCat() throws MException {
+
+        Cat cat = MongoManager.getInstance().get(Cat.class, PrimaryKey.builder("uid", 2));
+        System.out.println(cat.getFriend().get(0).getName());
+    }
+
+    public static void getCity() throws MException {
+        CityPo city = MongoManager.getInstance().get(CityPo.class, PrimaryKey.builder("uid", 2));
+
+        System.out.println(city);
+        CityPo c = MongoManager.getInstance().findOne(CityPo.class, Query.builder().and("uid", 2), null, Query.builder().and("name", "大城堡"));
+        System.out.println(c);
+
+    }
 
     public static void addManyUsers() throws MException {
 
