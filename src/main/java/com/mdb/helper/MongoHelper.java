@@ -215,4 +215,13 @@ public class MongoHelper {
         return list;
     }
 
+    public static Bson parseFilters(PrimaryKey[] keys) {
+        List<Bson> filters = new ArrayList<>();
+        for (PrimaryKey key : keys) {
+            Bson filter = Filters.eq(key.getName(), key.getValue());
+            filters.add(filter);
+        }
+        return Filters.and(filters);
+    }
+
 }

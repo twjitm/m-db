@@ -1,5 +1,7 @@
 package com.mdb.manager;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mdb.base.query.QueryNestedOptions;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.*;
@@ -7,6 +9,7 @@ import com.mdb.exception.MException;
 import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
 import com.mdb.utils.ZCollectionUtil;
+import com.mdb.utils.ZJsonUtils;
 import com.mdb.utils.ZStringUtils;
 import com.mongodb.*;
 
@@ -15,8 +18,12 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.util.JSON;
+import org.bson.BSONObject;
 import org.bson.Document;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
+import org.bson.json.JsonWriterSettings;
 
 import java.util.*;
 
@@ -233,7 +240,7 @@ public class MongoManager {
 
     public <T extends MongoPo> boolean delete(Class<T> clazz, PrimaryKey... keys) {
         MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
-        Bson filter = parseFilters(keys);
+        Bson filter = MongoHelper.parseFilters(keys);
         if (async) {
             return mongoSyncManager.put(MongoTask.builder(clazz, new DeleteOneModel<>(filter)));
         }
@@ -257,7 +264,7 @@ public class MongoManager {
             MongoIterable<Document> result = this.findNested(clazz, root, nested, null, Aggregates.limit(1));
             return parseOneNestedResult(clazz, result);
         }
-        Bson filter = parseFilters(keys);
+        Bson filter = MongoHelper.parseFilters(keys);
         FindIterable<T> findIterable = mongoCollectionManager.getCollection(clazz).find(filter, clazz);
         return parseOneResult(findIterable);
     }
@@ -401,7 +408,8 @@ public class MongoManager {
             return null;
         }
         Document newRoot = document.get("newRoot", Document.class);
-        return MongoHelper.create(clazz, newRoot);
+        String json = JSON.serialize(newRoot);
+        return ZJsonUtils.loads(json, clazz);
     }
 
     private <T extends MongoPo> List<T> parseAllNestedResult(Class<T> clazz, MongoIterable<Document> iterable) {
@@ -413,7 +421,8 @@ public class MongoManager {
             if (newRoot == null || newRoot.size() == 0) {
                 continue;
             }
-            T t = MongoHelper.create(clazz, newRoot);
+            String json = JSON.serialize(newRoot);
+            T t = ZJsonUtils.loads(json, clazz);
             result.add(t);
         }
         return result;
@@ -473,16 +482,6 @@ public class MongoManager {
             pipeline.add(options);
         }
         return mongoCollectionManager.getCollection(clazz).aggregate(pipeline);
-    }
-
-
-    private <T extends MongoPo> Bson parseFilters(PrimaryKey[] keys) {
-        List<Bson> filters = new ArrayList<>();
-        for (PrimaryKey key : keys) {
-            Bson filter = Filters.eq(key.getName(), key.getValue());
-            filters.add(filter);
-        }
-        return Filters.and(filters);
     }
 
 }

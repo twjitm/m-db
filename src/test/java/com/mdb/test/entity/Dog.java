@@ -1,6 +1,14 @@
 package com.mdb.test.entity;
 
 public class Dog {
+    public Dog() {
+
+    }
+    public Dog(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
     private String name;
     private int age;
 

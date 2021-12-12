@@ -5,16 +5,15 @@ import com.mdb.entity.MongoPo;
 import com.mdb.entity.NestedMongoPo;
 import com.mdb.entity.PrimaryKey;
 import com.mdb.exception.MException;
-import com.mdb.helper.MongoHelper;
 import com.mdb.manager.MongoCollectionManager;
 import com.mdb.manager.MongoManager;
+import com.mdb.test.entity.Cat;
+import com.mdb.test.entity.Dog;
 import com.mdb.test.entity.*;
-import com.mongodb.QueryBuilder;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
-import javafx.scene.media.MediaException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
