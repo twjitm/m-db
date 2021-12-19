@@ -5,7 +5,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Collation;
 import org.bson.conversions.Bson;
 
-public class QueryOptions {
+public class Options {
 
     private int batchSize;
     private int limit;
@@ -30,13 +30,13 @@ public class QueryOptions {
     private boolean snapshot;
 
 
-    QueryOptions() {
+    Options() {
 
     }
 
-    public static QueryOptions builder() {
+    public static Options builder() {
 
-        return new QueryOptions();
+        return new Options();
     }
 
     public <T> void merge(FindIterable<T> finder) {
@@ -55,107 +55,107 @@ public class QueryOptions {
         //todo
     }
 
-    public QueryOptions batchSize(int batchSize) {
+    public Options batchSize(int batchSize) {
         this.batchSize = batchSize;
         return this;
     }
 
-    public QueryOptions limit(int limit) {
+    public Options limit(int limit) {
         this.limit = limit;
         return this;
     }
 
-    public QueryOptions modifiers(Bson modifiers) {
+    public Options modifiers(Bson modifiers) {
         this.modifiers = modifiers;
         return this;
     }
 
-    public QueryOptions projection(Bson projection) {
+    public Options projection(Bson projection) {
         this.projection = projection;
         return this;
     }
 
-    public QueryOptions maxTimeMS(long maxTimeMS) {
+    public Options maxTimeMS(long maxTimeMS) {
         this.maxTimeMS = maxTimeMS;
         return this;
     }
 
-    public QueryOptions maxAwaitTimeMS(long maxAwaitTimeMS) {
+    public Options maxAwaitTimeMS(long maxAwaitTimeMS) {
         this.maxAwaitTimeMS = maxAwaitTimeMS;
         return this;
     }
 
-    public QueryOptions skip(int skip) {
+    public Options skip(int skip) {
         this.skip = skip;
         return this;
     }
 
-    public QueryOptions sort(Bson sort) {
+    public Options sort(Bson sort) {
         this.sort = sort;
         return this;
     }
 
-    public QueryOptions cursorType(CursorType cursorType) {
+    public Options cursorType(CursorType cursorType) {
         this.cursorType = cursorType;
         return this;
     }
 
-    public QueryOptions noCursorTimeout(boolean noCursorTimeout) {
+    public Options noCursorTimeout(boolean noCursorTimeout) {
         this.noCursorTimeout = noCursorTimeout;
         return this;
     }
 
-    public QueryOptions qplogReplay(boolean oplogReplay) {
+    public Options qplogReplay(boolean oplogReplay) {
         this.oplogReplay = oplogReplay;
         return this;
     }
 
-    public QueryOptions partial(boolean partial) {
+    public Options partial(boolean partial) {
         this.partial = partial;
         return this;
     }
 
-    public QueryOptions collation(Collation collation) {
+    public Options collation(Collation collation) {
         this.collation = collation;
         return this;
     }
 
-    public QueryOptions comment(String comment) {
+    public Options comment(String comment) {
         this.comment = comment;
         return this;
     }
 
-    public QueryOptions hint(Bson hint) {
+    public Options hint(Bson hint) {
         this.hint = hint;
         return this;
     }
 
-    public QueryOptions max(Bson max) {
+    public Options max(Bson max) {
         this.max = max;
         return this;
     }
 
-    public QueryOptions min(Bson min) {
+    public Options min(Bson min) {
         this.min = min;
         return this;
     }
 
-    public QueryOptions maxScan(long maxScan) {
+    public Options maxScan(long maxScan) {
         this.maxScan = maxScan;
         return this;
     }
 
-    public QueryOptions returnKey(boolean returnKey) {
+    public Options returnKey(boolean returnKey) {
         this.returnKey = returnKey;
         return this;
     }
 
-    public QueryOptions showRecordId(boolean showRecordId) {
+    public Options showRecordId(boolean showRecordId) {
         this.showRecordId = showRecordId;
         return this;
     }
 
-    public QueryOptions snapshot(boolean snapshot) {
+    public Options snapshot(boolean snapshot) {
         this.snapshot = snapshot;
         return this;
     }

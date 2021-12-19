@@ -1,9 +1,7 @@
 package com.mdb.manager;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mdb.base.query.QueryNestedOptions;
-import com.mdb.base.query.QueryOptions;
+import com.mdb.base.query.NestedOptions;
+import com.mdb.base.query.Options;
 import com.mdb.entity.*;
 import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
@@ -20,11 +18,8 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
-import org.bson.BSONObject;
 import org.bson.Document;
-import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonWriterSettings;
 
 import java.util.*;
 
@@ -293,29 +288,13 @@ public class MongoManager {
     }
 
     public <T extends AbstractMongoPo> T findOne(Class<T> clazz, QueryBuilder query) throws MException {
-        FindIterable<T> result = this.findSimple(clazz, query, QueryOptions.builder().limit(1));
+        FindIterable<T> result = this.findSimple(clazz, query, Options.builder().limit(1));
         return parseOneResult(result);
     }
 
-    public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
+    public <T extends AbstractMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder query, Options options) throws MException {
         FindIterable<T> result = this.findSimple(clazz, query, options);
         return parseAllResult(result);
-    }
-
-    private <T extends AbstractMongoPo> FindIterable<T> findSimple(Class<T> clazz, QueryBuilder query, QueryOptions options) throws MException {
-        if (query == null) {
-            throw new MException("[error][mdb][query is empty]");
-        }
-        BasicDBObject ob = (BasicDBObject) query.get();
-        if (ob.size() == 0) {
-            throw new MException("[error][mdb][conduction is empty]");
-        }
-        MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
-        FindIterable<T> result = collection.find(ob, clazz);
-        if (options != null) {
-            options.merge(result);
-        }
-        return result;
     }
 
     public <T extends MongoPo> long nextId(Class<T> tick) {
@@ -328,20 +307,6 @@ public class MongoManager {
         return this._nextId(collection);
     }
 
-    private synchronized long _nextId(String name) {
-        Document document = new Document();
-        document.put("key", name);
-        Document up = new Document();
-        up.put("$inc", new Document("value", 1));
-        MongoCollection<Document> collection = mongoCollectionManager.getCollection(TickId.class);
-        Document result = collection.findOneAndUpdate(document, up);
-        if (result == null) {
-            document.put("value", 1);
-            collection.insertOne(document);
-            return 1;
-        }
-        return result.getInteger("value");
-    }
 
     public <T extends AbstractMongoPo> long count(Class<T> clazz, QueryBuilder query) {
         BasicDBObject filter = (BasicDBObject) query.get();
@@ -380,7 +345,7 @@ public class MongoManager {
     }
 
     public <T extends AbstractNestedMongoPo> List<T> findAll(Class<T> clazz, QueryBuilder rootPathFilter, QueryBuilder nestedPathFilter,
-                                                             QueryBuilder nestedFilter, QueryNestedOptions options) throws MException {
+                                                             QueryBuilder nestedFilter, NestedOptions options) throws MException {
         if (rootPathFilter == null) {
             throw new MException("[error][mdb][query is empty]");
         }
@@ -392,6 +357,36 @@ public class MongoManager {
         return parseAllNestedResult(clazz, result);
     }
 
+    private <T extends AbstractMongoPo> FindIterable<T> findSimple(Class<T> clazz, QueryBuilder query, Options options) throws MException {
+        if (query == null) {
+            throw new MException("[error][mdb][query is empty]");
+        }
+        BasicDBObject ob = (BasicDBObject) query.get();
+        if (ob.size() == 0) {
+            throw new MException("[error][mdb][conduction is empty]");
+        }
+        MongoCollection<Document> collection = mongoCollectionManager.getCollection(clazz);
+        FindIterable<T> result = collection.find(ob, clazz);
+        if (options != null) {
+            options.merge(result);
+        }
+        return result;
+    }
+
+    private synchronized long _nextId(String name) {
+        Document document = new Document();
+        document.put("key", name);
+        Document up = new Document();
+        up.put("$inc", new Document("value", 1));
+        MongoCollection<Document> collection = mongoCollectionManager.getCollection(TickId.class);
+        Document result = collection.findOneAndUpdate(document, up);
+        if (result == null) {
+            document.put("value", 1);
+            collection.insertOne(document);
+            return 1;
+        }
+        return result.getInteger("value");
+    }
 
     private <T extends MongoPo> T parseOneResult(FindIterable<T> findIterable) {
         T t = findIterable.first();

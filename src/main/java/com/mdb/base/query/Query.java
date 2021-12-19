@@ -9,7 +9,7 @@ import com.mongodb.QueryBuilder;
 public class Query extends QueryBuilder {
 
 
-    public Query() {
+    private Query() {
         super();
     }
 
@@ -86,7 +86,7 @@ public class Query extends QueryBuilder {
     }
 
     public Query elemMarch(String key, Object value) {
-        this.and(key).elemMatch(new BasicDBObject(key,value));
+        this.and(key).elemMatch(new BasicDBObject(key, value));
         return this;
     }
 

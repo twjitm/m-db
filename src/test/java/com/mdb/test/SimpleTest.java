@@ -1,13 +1,11 @@
 package com.mdb.test;
 
 import com.mdb.base.query.Query;
-import com.mdb.base.query.QueryOptions;
+import com.mdb.base.query.Options;
 import com.mdb.entity.PrimaryKey;
 import com.mdb.exception.MException;
 import com.mdb.manager.MongoManager;
-import com.mdb.test.entity.AddressPo;
 import com.mdb.test.entity.BuildPo;
-import com.mdb.test.entity.UserInfoPo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +75,7 @@ public class SimpleTest {
     }
 
     public static void findAll() throws MException {
-        List<BuildPo> bs = MongoManager.getInstance().findAll(BuildPo.class, Query.builder().and("uid", 1).and("y", 6), QueryOptions.builder().limit(100));
+        List<BuildPo> bs = MongoManager.getInstance().findAll(BuildPo.class, Query.builder().and("uid", 1).and("y", 6), Options.builder().limit(100));
         System.out.println("findAll size=" + bs.size());
 
     }

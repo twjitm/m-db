@@ -9,34 +9,43 @@ import java.util.List;
 
 /**
  * 嵌入式文档查询option
+ *
  * @author twjitm
  */
-public class QueryNestedOptions {
+public class NestedOptions {
+
+    private NestedOptions() {
+
+    }
 
     private List<Bson> aggregates = new ArrayList<>();
 
-    public static QueryNestedOptions builder() {
+    public static NestedOptions builder() {
 
-        return new QueryNestedOptions();
+        return new NestedOptions();
     }
-    public QueryNestedOptions limit(int limit) {
+
+    public NestedOptions limit(int limit) {
         aggregates.add(Aggregates.limit(limit));
         return this;
     }
-    public QueryNestedOptions projection(Bson projection) {
+
+    public NestedOptions projection(Bson projection) {
         aggregates.add(Aggregates.project(projection));
         return this;
     }
-    public QueryNestedOptions skip(int skip) {
+
+    public NestedOptions skip(int skip) {
         aggregates.add(Aggregates.skip(skip));
 
         return this;
     }
 
-    public QueryNestedOptions sort(Bson sort) {
+    public NestedOptions sort(Bson sort) {
         aggregates.add(Aggregates.sort(sort));
         return this;
     }
+
     public Bson toAggregates() {
         return Filters.and(aggregates);
     }
