@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mdb.base.query.QueryNestedOptions;
 import com.mdb.base.query.QueryOptions;
 import com.mdb.entity.*;
+import com.mdb.enums.MongoDocument;
 import com.mdb.exception.MException;
 import com.mdb.helper.MongoHelper;
 import com.mdb.utils.ZClassUtils;
@@ -130,11 +131,12 @@ public class MongoManager {
         if (t == null) {
             return false;
         }
-        Class<? extends MongoPo> clazz = t.getClass();
+
         MongoCollection<Document> db = mongoCollectionManager.getCollection(t);
 
         String tickName = t.tick();
         if (!ZStringUtils.isEmpty(tickName)) {
+            Class<? extends MongoPo> clazz = t.getClass();
             long id = this.nextId(clazz);
             ZClassUtils.setField(t, tickName, id);
         }
@@ -317,9 +319,18 @@ public class MongoManager {
     }
 
     public <T extends MongoPo> long nextId(Class<T> tick) {
-        String key = tick.getSimpleName();
+        MongoDocument document = tick.getAnnotation(MongoDocument.class);
+        String name = ZStringUtils.isEmpty(document.nested()) ? document.table() : document.nested();
+        return _nextId(name);
+    }
+
+    public <T extends MongoPo> long nextId(String collection) {
+        return this._nextId(collection);
+    }
+
+    private synchronized long _nextId(String name) {
         Document document = new Document();
-        document.put("key", key);
+        document.put("key", name);
         Document up = new Document();
         up.put("$inc", new Document("value", 1));
         MongoCollection<Document> collection = mongoCollectionManager.getCollection(TickId.class);
