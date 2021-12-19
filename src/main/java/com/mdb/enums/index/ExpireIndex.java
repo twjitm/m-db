@@ -16,5 +16,11 @@ public @interface ExpireIndex {
 
     String name() default "";
 
+    /**
+     *
+     * @return 过期失效时间
+     */
+    long ttl() default  -1;
+
     int order() default -1;
 }

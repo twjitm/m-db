@@ -409,7 +409,11 @@ public class MongoManager {
         }
         Document newRoot = document.get("newRoot", Document.class);
         String json = JSON.serialize(newRoot);
-        return ZJsonUtils.loads(json, clazz);
+        T t = ZJsonUtils.loads(json, clazz);
+        if (t != null) {
+            t.document();
+        }
+        return t;
     }
 
     private <T extends MongoPo> List<T> parseAllNestedResult(Class<T> clazz, MongoIterable<Document> iterable) {
@@ -423,7 +427,10 @@ public class MongoManager {
             }
             String json = JSON.serialize(newRoot);
             T t = ZJsonUtils.loads(json, clazz);
-            result.add(t);
+            if (t != null) {
+                t.document();
+                result.add(t);
+            }
         }
         return result;
     }
