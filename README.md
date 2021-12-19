@@ -71,12 +71,14 @@ The detailed use of IndexTest is shown in IndexTest, where the index is created 
 
 ![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/index.jpg)
 
+![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/indexlist.jpg
+)
 
-
+### simple document struct (demo)
 <img src="https://raw.githubusercontent.com/twjitm/m-db-test/main/images/1638165371993.jpg" width="80%" height="80%">
-simple document \
 
-nested document \
+
+### nested document struct (demo)
 <img src="https://github.com/twjitm/m-db-test/blob/main/images/1638165334873.jpg?raw=true" width="80%" height="80%">
 
 
@@ -172,7 +174,7 @@ Query can be divided into two ways, one is to use the @mongoid annotation 'get' 
 ##### 1.4 update
 
 Modify a field in a document by, for example, modifying the query 'build' name
-```java
+```java 
 
     public static void update() throws MException {
         BuildPo b = MongoManager.getInstance().get(BuildPo.class, PrimaryKey.builder("uid", 1), PrimaryKey.builder("build_id", 2));
@@ -212,7 +214,8 @@ The system supports asynchronous operations. Encapsulate the operation as a task
 Thank you for your support of this project. If you find any problems, 
 please feel free to issue. Welcome to star 🌟 🌟 🌟 🌟.
 
-author:twjitm@gmail.com
+author:wenjiang.tang \
+gmail:twjitm@gmail.com
 
 
 

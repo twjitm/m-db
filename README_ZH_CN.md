@@ -105,6 +105,9 @@ public @interface ExpireIndex {
 
 ![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/index.jpg)
 
+![创建索引](https://raw.githubusercontent.com/twjitm/m-db-test/main/images/indexlist.jpg
+)
+
 
 #### 二、 简单文档使用
 
