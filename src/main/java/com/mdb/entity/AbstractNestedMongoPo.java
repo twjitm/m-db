@@ -14,6 +14,7 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractNestedMongoPo extends BaseMongoPo implements NestedMongoPo {
 
@@ -52,7 +53,12 @@ public abstract class AbstractNestedMongoPo extends BaseMongoPo implements Neste
                         field = nested + "." + field;
                     }
                     Bson bson = item.order() == 1 ? Indexes.ascending(field) : Indexes.descending(field);
-                    IndexModel index = new IndexModel(bson, new IndexOptions().unique(item.unique()));
+                    IndexOptions op = new IndexOptions().unique(item.unique());
+                    long expire = item.expireAfterSeconds();
+                    if (expire > 0) {
+                        op.expireAfter(expire, TimeUnit.SECONDS);
+                    }
+                    IndexModel index = new IndexModel(bson, op);
                     ids.add(index);
                 }
         );

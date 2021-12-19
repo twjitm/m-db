@@ -17,4 +17,11 @@ public @interface Indexed {
     String name();
 
     int order() default -1;
+
+    /**
+     * 过期时间
+     *
+     * @return 返回一个过期时间，当value 小于等于0时，无效
+     */
+    long expireAfterSeconds() default 0;
 }

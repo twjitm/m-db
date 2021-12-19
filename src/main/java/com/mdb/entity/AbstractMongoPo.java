@@ -12,6 +12,7 @@ import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 abstract public class AbstractMongoPo extends BaseMongoPo {
 
@@ -27,9 +28,15 @@ abstract public class AbstractMongoPo extends BaseMongoPo {
     public List<IndexModel> index() {
         List<IndexModel> ids = new ArrayList<>();
         List<Indexed> indexedList = ZClassUtils.getFieldAnnotations(this, Indexed.class);
-        indexedList.forEach(item ->
-                ids.add(new IndexModel(item.order() == 1 ? Indexes.ascending(item.name()) : Indexes.descending(item.name()),
-                        new IndexOptions().unique(item.unique()))));
+        indexedList.forEach(item -> {
+                    long expire = item.expireAfterSeconds();
+                    IndexOptions op = new IndexOptions().unique(item.unique());
+                    if (expire > 0) {
+                        op.expireAfter(expire, TimeUnit.SECONDS);
+                    }
+                    ids.add(new IndexModel(item.order() == 1 ? Indexes.ascending(item.name()) : Indexes.descending(item.name()), op));
+                }
+        );
         CompoundIndexed compoundIndex = ZClassUtils.getClassAnnotations(this.getClass(), CompoundIndexed.class);
         if (compoundIndex != null) {
             Indexed[] array = compoundIndex.value();
